@@ -1,128 +1,151 @@
 # QuickColor Pro - Architecture
 
+## Complete Project Structure
+
+```
+QUICKCOLOR-PRO/
+│
+├── 📁 .claude/                   # Claude Code configuration
+├── 📁 .expo/                     # Expo cache & config
+│
+├── 📁 app/                       # 🎨 UI LAYER - Screens (Expo Router)
+│   ├── (tabs)/                   # Tab navigation group
+│   │   ├── _layout.tsx           # Tab bar configuration
+│   │   ├── index.tsx             # Home screen
+│   │   ├── palettes.tsx          # Palette management
+│   │   └── settings.tsx          # Settings & preferences
+│   ├── dev/                      # Development screens
+│   ├── oauth/                    # OAuth callback handlers
+│   ├── _layout.tsx               # Root layout with providers
+│   ├── color-harmony.tsx         # Color harmony generator
+│   ├── gradient-generator.tsx    # Gradient creator
+│   ├── photo-picker.tsx          # Photo color extraction
+│   └── privacy-policy.tsx        # Privacy policy page
+│
+├── 📁 assets/                    # Static assets (images, fonts)
+│
+├── 📁 components/                # 🎨 UI LAYER - Reusable components
+│   ├── ui/                       # Base UI primitives
+│   │   ├── icon-symbol.tsx
+│   │   └── collapsible.tsx
+│   ├── screen-container.tsx      # SafeArea wrapper
+│   ├── themed-view.tsx           # Theme-aware view
+│   ├── coming-soon-modal.tsx     # Feature placeholder
+│   └── ...
+│
+├── 📁 constants/                 # App-wide constants
+│   ├── const.ts                  # Global constants
+│   ├── oauth.ts                  # OAuth configuration
+│   └── theme.ts                  # Theme tokens
+│
+├── 📁 data/                      # 💾 DAL - Data Access Layer
+│   ├── index.ts                  # Public API exports
+│   └── providers/
+│       ├── index.ts              # Provider exports
+│       ├── IDataProvider.ts      # Interface contract
+│       ├── AsyncStorageProvider.ts   # Local persistence
+│       ├── SecureStorageProvider.ts  # Encrypted storage
+│       ├── MemoryProvider.ts         # In-memory cache
+│       └── DataProviderFactory.ts    # Factory pattern
+│
+├── 📁 dist/                      # Build output
+├── 📁 drizzle/                   # Database migrations
+│
+├── 📁 hooks/                     # 🔗 HOOKS - Bridge UI ↔ BLL
+│   ├── index.ts                  # Public API exports
+│   ├── use-recent-colors.ts      # → ColorService
+│   ├── use-palettes.ts           # → PaletteService
+│   ├── use-settings.ts           # → SettingsService
+│   ├── use-color-service.ts      # → Color utilities
+│   ├── use-colors.ts             # Theme colors
+│   ├── use-color-scheme.ts       # Dark/Light mode
+│   └── use-auth.ts               # Authentication state
+│
+├── 📁 lib/                       # 🔧 Shared utilities
+│   ├── _core/                    # Core platform utilities
+│   ├── color-utils.ts            # Color conversion functions
+│   ├── color-extraction.ts       # Image color extraction
+│   ├── theme-provider.tsx        # Theme context provider
+│   └── utils.ts                  # General utilities
+│
+├── 📁 node_modules/              # Dependencies
+├── 📁 play-store-assets/         # Google Play Store assets
+├── 📁 scripts/                   # Build & utility scripts
+│
+├── 📁 server/                    # Backend (Express + tRPC)
+│   └── _core/                    # Core server utilities
+│
+├── 📁 services/                  # ⚙️ BLL - Business Logic Layer
+│   ├── index.ts                  # Public API exports
+│   ├── IService.ts               # Base service interfaces
+│   ├── ColorService.ts           # Color operations & recent colors
+│   ├── PaletteService.ts         # Palette CRUD & limits
+│   └── SettingsService.ts        # User preferences
+│
+├── 📁 shared/                    # Shared types between client/server
+├── 📁 tests/                     # Test files
+│
+├── 📄 .gitignore
+├── 📄 .gitkeep
+├── 📄 .npmrc
+├── 📄 .watchmanconfig
+├── 📄 app.config.ts              # Expo configuration
+├── 📄 ARCHITECTURE.md            # This file
+├── 📄 babel.config.js
+├── 📄 CLAUDE.md                  # Claude Code instructions
+├── 📄 DELIVERY-SUMMARY.md
+├── 📄 DEPLOYMENT.md
+├── 📄 ...
+└── 📄 tsconfig.json
+```
+
 ## 3-Tier Architecture (UI → BLL → DAL)
 
 This application follows a strict 3-tier architecture pattern with clear separation of concerns.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         PRESENTATION LAYER (UI)                      │
-│                                                                      │
-│   app/                    components/              hooks/            │
-│   ├── (tabs)/             ├── ui/                 ├── use-*         │
-│   │   ├── index.tsx       │   └── icon-symbol    │                  │
-│   │   ├── palettes.tsx    ├── screen-container   │                  │
-│   │   └── settings.tsx    └── coming-soon-modal  │                  │
-│   ├── photo-picker.tsx                                               │
-│   └── gradient-generator.tsx                                         │
-│                                                                      │
-│   Responsibilities:                                                  │
-│   • Render UI components                                             │
-│   • Handle user interactions                                         │
-│   • Use hooks for state/data access                                  │
-│   • NO direct data access or business logic                          │
+│                    PRESENTATION LAYER (UI)                          │
+│                                                                     │
+│   📁 app/          📁 components/         📁 hooks/                 │
+│   (Screens)        (UI Components)        (State Bridge)            │
+│                                                                     │
+│   • Renders UI                                                      │
+│   • Handles user interactions                                       │
+│   • Uses hooks for data access                                      │
+│   • NO direct data access                                           │
 └─────────────────────────────────┬───────────────────────────────────┘
-                                  │
-                                  │ Uses Hooks
+                                  │ imports hooks
                                   ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                     BUSINESS LOGIC LAYER (BLL)                       │
-│                                                                      │
-│   services/                                                          │
-│   ├── IService.ts           (Base interfaces)                       │
-│   ├── ColorService.ts       (Color operations, recent colors)       │
-│   ├── PaletteService.ts     (Palette CRUD, limits)                  │
-│   ├── SettingsService.ts    (User preferences)                      │
-│   └── index.ts              (Public API)                            │
-│                                                                      │
-│   Responsibilities:                                                  │
-│   • Implement business rules                                         │
-│   • Validate data                                                    │
-│   • Orchestrate data operations                                      │
-│   • Enforce limits (free vs pro)                                     │
-│   • Provide observable state                                         │
+│                   BUSINESS LOGIC LAYER (BLL)                        │
+│                                                                     │
+│   📁 services/                                                      │
+│   ├── ColorService      (Color operations)                         │
+│   ├── PaletteService    (Palette management)                       │
+│   └── SettingsService   (User preferences)                         │
+│                                                                     │
+│   • Business rules & validation                                     │
+│   • Orchestrates data operations                                    │
+│   • Enforces limits (free vs pro)                                   │
+│   • Observable state for reactivity                                 │
 └─────────────────────────────────┬───────────────────────────────────┘
-                                  │
-                                  │ Uses IDataProvider
+                                  │ imports providers
                                   ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      DATA ACCESS LAYER (DAL)                         │
-│                                                                      │
-│   data/providers/                                                    │
-│   ├── IDataProvider.ts         (Interface contract)                 │
-│   ├── AsyncStorageProvider.ts  (Local persistence)                  │
-│   ├── SecureStorageProvider.ts (Secure/encrypted storage)           │
-│   ├── MemoryProvider.ts        (In-memory/session cache)            │
-│   ├── DataProviderFactory.ts   (Factory pattern)                    │
-│   └── index.ts                 (Public API)                         │
-│                                                                      │
-│   Responsibilities:                                                  │
-│   • Abstract storage implementations                                 │
-│   • Handle serialization/deserialization                             │
-│   • Provide consistent CRUD interface                                │
-│   • Enable swappable storage backends                                │
+│                    DATA ACCESS LAYER (DAL)                          │
+│                                                                     │
+│   📁 data/providers/                                                │
+│   ├── IDataProvider           (Interface contract)                 │
+│   ├── AsyncStorageProvider    (Local storage)                      │
+│   ├── SecureStorageProvider   (Encrypted storage)                  │
+│   ├── MemoryProvider          (Session cache)                      │
+│   └── DataProviderFactory     (Creates providers)                  │
+│                                                                     │
+│   • Abstracts storage implementations                               │
+│   • Handles serialization                                           │
+│   • Provides consistent CRUD interface                              │
 └─────────────────────────────────────────────────────────────────────┘
-```
-
-## Directory Structure
-
-```
-quickcolor-pro/
-├── app/                          # UI Layer - Screens (Expo Router)
-│   ├── (tabs)/                   # Tab navigation
-│   │   ├── _layout.tsx
-│   │   ├── index.tsx             # Home screen
-│   │   ├── palettes.tsx          # Palettes screen
-│   │   └── settings.tsx          # Settings screen
-│   ├── _layout.tsx               # Root layout
-│   ├── photo-picker.tsx
-│   ├── gradient-generator.tsx
-│   ├── color-harmony.tsx
-│   └── privacy-policy.tsx
-│
-├── components/                   # UI Layer - Reusable components
-│   ├── ui/                       # Base UI primitives
-│   ├── screen-container.tsx
-│   ├── themed-view.tsx
-│   └── coming-soon-modal.tsx
-│
-├── hooks/                        # UI Layer - React hooks
-│   ├── index.ts                  # Public API
-│   ├── use-recent-colors.ts      # → ColorService
-│   ├── use-palettes.ts           # → PaletteService
-│   ├── use-settings.ts           # → SettingsService
-│   ├── use-color-service.ts      # → ColorService utilities
-│   ├── use-colors.ts             # Theme colors
-│   ├── use-color-scheme.ts       # Dark/Light mode
-│   └── use-auth.ts               # Authentication
-│
-├── services/                     # BLL - Business Logic Layer
-│   ├── index.ts                  # Public API
-│   ├── IService.ts               # Base interfaces
-│   ├── ColorService.ts           # Color operations
-│   ├── PaletteService.ts         # Palette management
-│   └── SettingsService.ts        # User settings
-│
-├── data/                         # DAL - Data Access Layer
-│   ├── index.ts                  # Public API
-│   └── providers/
-│       ├── index.ts              # Provider exports
-│       ├── IDataProvider.ts      # Interface contract
-│       ├── AsyncStorageProvider.ts
-│       ├── SecureStorageProvider.ts
-│       ├── MemoryProvider.ts
-│       └── DataProviderFactory.ts
-│
-├── lib/                          # Utilities (shared)
-│   ├── color-utils.ts            # Color conversion algorithms
-│   ├── color-extraction.ts       # Image color extraction
-│   ├── theme-provider.tsx        # Theme context
-│   └── utils.ts                  # General utilities
-│
-└── constants/                    # App constants
-    ├── const.ts
-    ├── oauth.ts
-    └── theme.ts
 ```
 
 ## Design Patterns

@@ -1,4 +1,4 @@
-import { Colors, type ColorScheme, type ThemeColorPalette } from "@/constants/theme";
+import { Colors, type ColorScheme, type ThemeColorPalette } from "@/lib/constants/theme";
 import { useColorScheme } from "./use-color-scheme";
 
 /**

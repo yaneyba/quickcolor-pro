@@ -5,9 +5,6 @@
 ```
 QUICKCOLOR-PRO/
 │
-├── 📁 .claude/                   # Claude Code configuration
-├── 📁 .expo/                     # Expo cache & config
-│
 ├── 📁 app/                       # 🎨 UI LAYER - Screens (Expo Router)
 │   ├── (tabs)/                   # Tab navigation group
 │   │   ├── _layout.tsx           # Tab bar configuration
@@ -22,16 +19,13 @@ QUICKCOLOR-PRO/
 │   ├── photo-picker.tsx          # Photo color extraction
 │   └── privacy-policy.tsx        # Privacy policy page
 │
-├── 📁 assets/                    # Static assets (images, fonts)
-│
 ├── 📁 ui-components/             # 🎨 UI LAYER - Reusable components
 │   ├── ui/                       # Base UI primitives
 │   │   ├── icon-symbol.tsx
 │   │   └── collapsible.tsx
 │   ├── screen-container.tsx      # SafeArea wrapper
 │   ├── themed-view.tsx           # Theme-aware view
-│   ├── coming-soon-modal.tsx     # Feature placeholder
-│   └── ...
+│   └── coming-soon-modal.tsx     # Feature placeholder
 │
 ├── 📁 ui-hooks/                  # 🔗 HOOKS - Bridge UI ↔ BLL
 │   ├── index.ts                  # Public API exports
@@ -52,44 +46,50 @@ QUICKCOLOR-PRO/
 │
 ├── 📁 dal-data/                  # 💾 DAL - Data Access Layer
 │   ├── index.ts                  # Public API exports
-│   └── providers/
-│       ├── index.ts              # Provider exports
-│       ├── IDataProvider.ts      # Interface contract
-│       ├── AsyncStorageProvider.ts   # Local persistence
-│       ├── SecureStorageProvider.ts  # Encrypted storage
-│       ├── MemoryProvider.ts         # In-memory cache
-│       └── DataProviderFactory.ts    # Factory pattern
+│   ├── providers/                # Storage abstraction
+│   │   ├── index.ts              # Provider exports
+│   │   ├── IDataProvider.ts      # Interface contract
+│   │   ├── AsyncStorageProvider.ts   # Local persistence
+│   │   ├── SecureStorageProvider.ts  # Encrypted storage
+│   │   ├── MemoryProvider.ts         # In-memory cache
+│   │   └── DataProviderFactory.ts    # Factory pattern
+│   ├── drizzle/                  # Database ORM
+│   │   ├── schema.ts             # Database schema
+│   │   ├── relations.ts          # Table relations
+│   │   └── migrations/           # SQL migrations
+│   └── server/                   # Backend API (Express + tRPC)
+│       ├── _core/                # Core server utilities
+│       ├── db.ts                 # Database operations
+│       ├── routers.ts            # tRPC routers
+│       └── storage.ts            # File storage
 │
 ├── 📁 lib/                       # 🔧 Shared utilities
 │   ├── _core/                    # Core platform utilities
+│   ├── constants/                # App-wide constants
+│   │   ├── const.ts              # Global constants
+│   │   ├── oauth.ts              # OAuth configuration
+│   │   └── theme.ts              # Theme tokens
+│   ├── shared/                   # Shared types & errors
+│   │   ├── types.ts              # Type exports
+│   │   ├── const.ts              # Shared constants
+│   │   └── _core/errors.ts       # Error definitions
 │   ├── color-utils.ts            # Color conversion functions
 │   ├── color-extraction.ts       # Image color extraction
 │   ├── theme-provider.tsx        # Theme context provider
+│   ├── trpc.ts                   # tRPC client
 │   └── utils.ts                  # General utilities
 │
-├── 📁 constants/                 # App-wide constants
-│   ├── const.ts                  # Global constants
-│   ├── oauth.ts                  # OAuth configuration
-│   └── theme.ts                  # Theme tokens
-│
+├── 📁 assets/                    # Static assets (images, fonts)
 ├── 📁 docs/                      # 📚 Documentation
-│   ├── ARCHITECTURE.md           # This file
-│   ├── DEPLOYMENT.md             # Deployment guide
-│   ├── ROADMAP.md                # Feature roadmap
-│   └── ...
-│
-├── 📁 server/                    # Backend (Express + tRPC)
-│   └── _core/                    # Core server utilities
-│
-├── 📁 shared/                    # Shared types between client/server
-├── 📁 tests/                     # Test files
-├── 📁 scripts/                   # Build & utility scripts
+├── 📁 tooling/                   # 🔨 Build & utility scripts
+├── 📁 __tests__/                 # 🧪 Test files
 ├── 📁 play-store-assets/         # Google Play Store assets
 │
-├── 📄 CLAUDE.md                  # Claude Code instructions (root)
+├── 📄 CLAUDE.md                  # Claude Code instructions
 ├── 📄 app.config.ts              # Expo configuration
+├── 📄 drizzle.config.ts          # Drizzle ORM config
 ├── 📄 tsconfig.json              # TypeScript config
-└── 📄 ...
+└── 📄 package.json               # Dependencies
 ```
 
 ## 3-Tier Architecture (UI → BLL → DAL)
@@ -128,12 +128,19 @@ This application follows a strict 3-tier architecture pattern with clear separat
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    DATA ACCESS LAYER (DAL)                          │
 │                                                                     │
-│   📁 dal-data/providers/                                            │
-│   ├── IDataProvider           (Interface contract)                 │
-│   ├── AsyncStorageProvider    (Local storage)                      │
-│   ├── SecureStorageProvider   (Encrypted storage)                  │
-│   ├── MemoryProvider          (Session cache)                      │
-│   └── DataProviderFactory     (Creates providers)                  │
+│   📁 dal-data/                                                      │
+│   ├── providers/              (Storage abstraction)                │
+│   │   ├── IDataProvider           (Interface contract)             │
+│   │   ├── AsyncStorageProvider    (Local storage)                  │
+│   │   ├── SecureStorageProvider   (Encrypted storage)              │
+│   │   ├── MemoryProvider          (Session cache)                  │
+│   │   └── DataProviderFactory     (Creates providers)              │
+│   ├── drizzle/                (Database ORM)                       │
+│   │   ├── schema.ts               (Table definitions)              │
+│   │   └── migrations/             (SQL migrations)                 │
+│   └── server/                 (Backend API)                        │
+│       ├── routers.ts              (tRPC endpoints)                 │
+│       └── db.ts                   (Database operations)            │
 │                                                                     │
 │   • Abstracts storage implementations                               │
 │   • Handles serialization                                           │
@@ -145,15 +152,17 @@ This application follows a strict 3-tier architecture pattern with clear separat
 
 The folder names include layer prefixes for visual clarity:
 
-| Folder | Layer | Purpose |
-|--------|-------|---------|
-| `app/` | UI | Expo Router screens |
-| `ui-components/` | UI | Reusable UI components |
-| `ui-hooks/` | UI/Bridge | React hooks connecting to services |
-| `bll-services/` | BLL | Business logic services |
-| `dal-data/` | DAL | Data access providers |
-| `lib/` | Shared | Utilities used across all layers |
-| `constants/` | Shared | App-wide constants |
+| Folder           | Layer     | Purpose                              |
+|------------------|-----------|--------------------------------------|
+| `app/`           | UI        | Expo Router screens                  |
+| `ui-components/` | UI        | Reusable UI components               |
+| `ui-hooks/`      | UI/Bridge | React hooks connecting to services   |
+| `bll-services/`  | BLL       | Business logic services              |
+| `dal-data/`      | DAL       | All data access (providers, ORM, API)|
+| `lib/`           | Shared    | Utilities, constants, types          |
+| `tooling/`       | DevOps    | Build scripts, utilities             |
+| `__tests__/`     | Testing   | Unit and integration tests           |
+| `docs/`          | Docs      | Project documentation                |
 
 ## Design Patterns
 
@@ -240,21 +249,40 @@ User Action → UI Component → Hook → Service → Provider → Storage
 
 ### ✅ Allowed Imports
 
-| From Layer | Can Import From |
-|------------|-----------------|
-| UI (app/, ui-components/) | ui-hooks/, lib/, constants/ |
-| Hooks (ui-hooks/) | bll-services/, lib/ |
-| Services (bll-services/) | dal-data/, lib/ |
-| Data (dal-data/) | (external packages only) |
+| From Layer                      | Can Import From              |
+|---------------------------------|------------------------------|
+| UI (app/, ui-components/)       | ui-hooks/, lib/              |
+| Hooks (ui-hooks/)               | bll-services/, lib/          |
+| Services (bll-services/)        | dal-data/, lib/              |
+| Data (dal-data/)                | lib/, external packages      |
 
 ### ❌ Forbidden Imports
 
-| From Layer | Cannot Import From |
-|------------|-------------------|
-| UI | bll-services/, dal-data/ |
-| Hooks | dal-data/ |
-| Services | app/, ui-components/, ui-hooks/ |
-| Data | bll-services/, ui-hooks/, app/ |
+| From Layer   | Cannot Import From                   |
+|--------------|--------------------------------------|
+| UI           | bll-services/, dal-data/             |
+| Hooks        | dal-data/                            |
+| Services     | app/, ui-components/, ui-hooks/      |
+| Data         | bll-services/, ui-hooks/, app/       |
+
+## DAL Sub-layers
+
+The DAL (`dal-data/`) contains three distinct sub-layers:
+
+1. **providers/** - Storage abstraction for local data
+   - AsyncStorage for app preferences
+   - SecureStore for sensitive data
+   - MemoryProvider for session cache
+
+2. **drizzle/** - Database ORM for structured data
+   - Schema definitions
+   - SQL migrations
+   - Type-safe queries
+
+3. **server/** - Backend API for remote data
+   - tRPC routers
+   - Express middleware
+   - OAuth handlers
 
 ## Adding New Features
 
@@ -310,4 +338,5 @@ case 'firebase':
 4. **Scalability**: Easy to add new features following the pattern
 5. **Type Safety**: Strong typing throughout all layers
 6. **Reactive**: Observable services enable real-time UI updates
-7. **Visual Clarity**: Layer prefixes make architecture immediately obvious in file explorer
+7. **Visual Clarity**: Layer prefixes make architecture immediately obvious
+8. **Consolidated DAL**: All data access in one folder with clear sub-layers

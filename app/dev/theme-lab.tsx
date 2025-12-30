@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 
 import { ScreenContainer } from "@/ui-components/screen-container";
 import { ThemedView } from "@/ui-components/themed-view";
 import { IconSymbol } from "@/ui-components/ui/icon-symbol";
-import { SchemeColors, type ColorScheme } from "@/constants/theme";
+import { SchemeColors, type ColorScheme } from "@/lib/constants/theme";
 import { useColors } from "@/ui-hooks/use-colors";
 import { useThemeContext } from "@/lib/theme-provider";
 

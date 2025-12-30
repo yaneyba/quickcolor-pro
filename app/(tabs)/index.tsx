@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { ScrollView, Text, View, TouchableOpacity, Platform, Alert } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, Platform } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/ui-components/screen-container";
 import { IconSymbol } from "@/ui-components/ui/icon-symbol";
+import { ComingSoonModal } from "@/ui-components/coming-soon-modal";
+import { ToastModal } from "@/ui-components/toast-modal";
 import { useColors } from "@/ui-hooks/use-colors";
 import { useRecentColors, useColorService } from "@/ui-hooks";
 import { getColorFormats } from "@/lib/color-utils";
@@ -19,6 +21,20 @@ export default function HomeScreen() {
   const [selectedColor, setSelectedColor] = useState("#FF6B35");
   const [colorFormats, setColorFormats] = useState(getColorFormats("#FF6B35"));
 
+  // Modal states
+  const [comingSoon, setComingSoon] = useState<{
+    visible: boolean;
+    feature: string;
+    description: string;
+    icon: string;
+  }>({ visible: false, feature: "", description: "", icon: "sparkles" });
+
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+  }>({ visible: false, title: "", message: "" });
+
   // Update selected color when recent colors load
   useEffect(() => {
     if (recentColors.length > 0 && selectedColor === "#FF6B35") {
@@ -33,12 +49,20 @@ export default function HomeScreen() {
     }
   };
 
-  const navigateToScreenPicker = () => {
+  const showComingSoon = (feature: string, description: string, icon: string = "sparkles") => {
     handlePress();
-    Alert.alert(
-      "Coming Soon",
-      "Screen Picker will be available in a future update. This feature will allow you to pick colors directly from anywhere on your screen.",
-      [{ text: "OK" }]
+    setComingSoon({ visible: true, feature, description, icon });
+  };
+
+  const showToast = (title: string, message: string) => {
+    setToast({ visible: true, title, message });
+  };
+
+  const navigateToScreenPicker = () => {
+    showComingSoon(
+      "Screen Picker",
+      "Pick colors directly from anywhere on your screen. This feature will allow you to capture any color you see on your device.",
+      "eyedropper"
     );
   };
 
@@ -66,7 +90,7 @@ export default function HomeScreen() {
   const handleCopyToClipboard = async (text: string, format: string) => {
     const success = await copyToClipboard(text);
     if (success) {
-      Alert.alert("Copied!", `${format} value copied to clipboard`);
+      showToast("Copied!", `${format} value copied to clipboard`);
     }
   };
 
@@ -221,6 +245,24 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Coming Soon Modal */}
+      <ComingSoonModal
+        visible={comingSoon.visible}
+        onClose={() => setComingSoon({ ...comingSoon, visible: false })}
+        featureName={comingSoon.feature}
+        description={comingSoon.description}
+        icon={comingSoon.icon}
+      />
+
+      {/* Toast Modal */}
+      <ToastModal
+        visible={toast.visible}
+        onClose={() => setToast({ ...toast, visible: false })}
+        title={toast.title}
+        message={toast.message}
+        type="success"
+      />
     </ScreenContainer>
   );
 }

@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
-  Alert,
   TextInput,
   Modal,
 } from "react-native";
@@ -15,9 +14,10 @@ import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import { ScreenContainer } from "@/ui-components/screen-container";
 import { IconSymbol } from "@/ui-components/ui/icon-symbol";
+import { ComingSoonModal } from "@/ui-components/coming-soon-modal";
+import { ToastModal } from "@/ui-components/toast-modal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColors } from "@/ui-hooks/use-colors";
-import { ComingSoonModal } from "@/ui-components/coming-soon-modal";
 
 const PALETTES_KEY = "@quickcolor_palettes";
 
@@ -46,6 +46,18 @@ export default function GradientGeneratorScreen() {
     icon: string;
   }>({ visible: false, feature: "", description: "", icon: "sparkles" });
 
+  // Toast state
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "info";
+  }>({ visible: false, title: "", message: "", type: "success" });
+
+  const showToast = (title: string, message: string, type: "success" | "error" | "info" = "success") => {
+    setToast({ visible: true, title, message, type });
+  };
+
   const handlePress = () => {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -54,7 +66,7 @@ export default function GradientGeneratorScreen() {
 
   const addColorStop = () => {
     if (colorStops.length >= 5) {
-      Alert.alert("Limit Reached", "Maximum 5 color stops allowed");
+      showToast("Limit Reached", "Maximum 5 color stops allowed", "info");
       return;
     }
     handlePress();
@@ -63,7 +75,7 @@ export default function GradientGeneratorScreen() {
 
   const removeColorStop = (index: number) => {
     if (colorStops.length <= 2) {
-      Alert.alert("Minimum Required", "At least 2 color stops required");
+      showToast("Minimum Required", "At least 2 color stops required", "info");
       return;
     }
     handlePress();
@@ -102,9 +114,9 @@ export default function GradientGeneratorScreen() {
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-      Alert.alert("Saved!", "Gradient colors saved to palettes");
+      showToast("Saved!", "Gradient colors saved to palettes");
     } catch (error) {
-      Alert.alert("Error", "Failed to save palette");
+      showToast("Error", "Failed to save palette", "error");
     }
   };
 
@@ -119,7 +131,7 @@ export default function GradientGeneratorScreen() {
     // Validate hex color
     const hexRegex = /^#[0-9A-Fa-f]{6}$/;
     if (!hexRegex.test(newColor)) {
-      Alert.alert("Invalid Color", "Please enter a valid HEX color (e.g., #FF6B35)");
+      showToast("Invalid Color", "Please enter a valid HEX color (e.g., #FF6B35)", "error");
       return;
     }
     handlePress();
@@ -146,7 +158,7 @@ export default function GradientGeneratorScreen() {
     }
     const css = `background: linear-gradient(${angle}deg, ${colorStops.join(", ")});`;
     await Clipboard.setStringAsync(css);
-    Alert.alert("Copied!", "CSS gradient code copied to clipboard");
+    showToast("Copied!", "CSS gradient code copied to clipboard");
   };
 
   return (
@@ -392,6 +404,15 @@ export default function GradientGeneratorScreen() {
         featureName={comingSoon.feature}
         description={comingSoon.description}
         icon={comingSoon.icon}
+      />
+
+      {/* Toast Modal */}
+      <ToastModal
+        visible={toast.visible}
+        onClose={() => setToast({ ...toast, visible: false })}
+        title={toast.title}
+        message={toast.message}
+        type={toast.type}
       />
     </>
   );

@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
-  Alert,
   TextInput,
   Modal,
 } from "react-native";
@@ -15,6 +14,7 @@ import * as Clipboard from "expo-clipboard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ScreenContainer } from "@/ui-components/screen-container";
 import { IconSymbol } from "@/ui-components/ui/icon-symbol";
+import { ToastModal } from "@/ui-components/toast-modal";
 import { useColors } from "@/ui-hooks/use-colors";
 import {
   getHarmonyColors,
@@ -48,6 +48,18 @@ export default function ColorHarmonyScreen() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [paletteName, setPaletteName] = useState("");
 
+  // Toast state
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "info";
+  }>({ visible: false, title: "", message: "", type: "success" });
+
+  const showToast = (title: string, message: string, type: "success" | "error" | "info" = "success") => {
+    setToast({ visible: true, title, message, type });
+  };
+
   const harmonyColors = getHarmonyColors(baseColor, harmonyType);
 
   const handlePress = () => {
@@ -61,7 +73,7 @@ export default function ColorHarmonyScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
     await Clipboard.setStringAsync(color);
-    Alert.alert("Copied!", `${color} copied to clipboard`);
+    showToast("Copied!", `${color} copied to clipboard`);
   };
 
   const copyAllColors = async () => {
@@ -69,13 +81,13 @@ export default function ColorHarmonyScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
     await Clipboard.setStringAsync(harmonyColors.join(", "));
-    Alert.alert("Copied!", "All colors copied to clipboard");
+    showToast("Copied!", "All colors copied to clipboard");
   };
 
   const applyColorInput = () => {
     const hexRegex = /^#[0-9A-Fa-f]{6}$/;
     if (!hexRegex.test(colorInput)) {
-      Alert.alert("Invalid Color", "Please enter a valid HEX color (e.g., #FF6B35)");
+      showToast("Invalid Color", "Please enter a valid HEX color (e.g., #FF6B35)", "error");
       return;
     }
     handlePress();
@@ -85,7 +97,7 @@ export default function ColorHarmonyScreen() {
 
   const saveToPalette = async () => {
     if (!paletteName.trim()) {
-      Alert.alert("Error", "Please enter a palette name");
+      showToast("Error", "Please enter a palette name", "error");
       return;
     }
 
@@ -105,11 +117,11 @@ export default function ColorHarmonyScreen() {
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-      Alert.alert("Saved!", "Palette saved successfully");
+      showToast("Saved!", "Palette saved successfully");
       setPaletteName("");
       setShowSaveModal(false);
     } catch (error) {
-      Alert.alert("Error", "Failed to save palette");
+      showToast("Error", "Failed to save palette", "error");
     }
   };
 
@@ -391,6 +403,15 @@ export default function ColorHarmonyScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Toast Modal */}
+      <ToastModal
+        visible={toast.visible}
+        onClose={() => setToast({ ...toast, visible: false })}
+        title={toast.title}
+        message={toast.message}
+        type={toast.type}
+      />
     </>
   );
 }

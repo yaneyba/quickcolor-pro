@@ -15,9 +15,11 @@ import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColors } from "@/hooks/use-colors";
-// Color utilities are imported but functions are available for future use
-// import { generateGradient, getColorFormats } from "@/lib/color-utils";
+import { ComingSoonModal } from "@/components/coming-soon-modal";
+
+const PALETTES_KEY = "@quickcolor_palettes";
 
 type GradientType = "linear" | "radial" | "angular";
 
@@ -37,6 +39,12 @@ export default function GradientGeneratorScreen() {
   const [angle, setAngle] = useState(90);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [colorInput, setColorInput] = useState("");
+  const [comingSoon, setComingSoon] = useState<{
+    visible: boolean;
+    feature: string;
+    description: string;
+    icon: string;
+  }>({ visible: false, feature: "", description: "", icon: "sparkles" });
 
   const handlePress = () => {
     if (Platform.OS !== "web") {
@@ -62,11 +70,42 @@ export default function GradientGeneratorScreen() {
     setColorStops(colorStops.filter((_, i) => i !== index));
   };
 
-  const exportGradient = () => {
+  const showComingSoon = (feature: string, description: string, icon: string = "sparkles") => {
     if (Platform.OS !== "web") {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    Alert.alert("Export", "Gradient exported as PNG (1080x1920)");
+    setComingSoon({ visible: true, feature, description, icon });
+  };
+
+  const exportGradient = () => {
+    showComingSoon(
+      "PNG Export",
+      "Export your gradients as high-quality PNG images. Perfect for wallpapers and design assets.",
+      "square.and.arrow.up"
+    );
+  };
+
+  const saveTopalette = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(PALETTES_KEY);
+      const palettes = stored ? JSON.parse(stored) : [];
+
+      const newPalette = {
+        id: Date.now(),
+        name: "Gradient Palette",
+        colors: colorStops.slice(0, 5), // Max 5 colors
+        date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      };
+
+      await AsyncStorage.setItem(PALETTES_KEY, JSON.stringify([newPalette, ...palettes]));
+
+      if (Platform.OS !== "web") {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      Alert.alert("Saved!", "Gradient colors saved to palettes");
+    } catch (error) {
+      Alert.alert("Error", "Failed to save palette");
+    }
   };
 
   const openColorEditor = (index: number) => {
@@ -260,10 +299,7 @@ export default function GradientGeneratorScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => {
-                  handlePress();
-                  Alert.alert("Save", "Gradient saved to palettes");
-                }}
+                onPress={saveTopalette}
                 activeOpacity={0.7}
                 className="bg-surface border border-border px-6 py-4 rounded-full"
               >
@@ -348,6 +384,15 @@ export default function GradientGeneratorScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Coming Soon Modal */}
+      <ComingSoonModal
+        visible={comingSoon.visible}
+        onClose={() => setComingSoon({ ...comingSoon, visible: false })}
+        featureName={comingSoon.feature}
+        description={comingSoon.description}
+        icon={comingSoon.icon}
+      />
     </>
   );
 }

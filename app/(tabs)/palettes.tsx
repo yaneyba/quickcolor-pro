@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ScrollView, Text, View, TouchableOpacity, Platform, Alert, TextInput, Modal } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, Platform, Alert, TextInput, Modal, Share } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -145,6 +145,24 @@ export default function PalettesScreen() {
     }
     await Clipboard.setStringAsync(paletteColors.join(", "));
     Alert.alert("Copied!", "All colors copied to clipboard");
+  };
+
+  const sharePalette = async (palette: Palette) => {
+    try {
+      const colorList = palette.colors.join("\n");
+      const message = `🎨 ${palette.name}\n\n${colorList}\n\nCreated with QuickColor Pro`;
+
+      await Share.share({
+        message,
+        title: palette.name,
+      });
+
+      if (Platform.OS !== "web") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+    } catch (error) {
+      // User cancelled or error
+    }
   };
 
   return (
@@ -311,18 +329,27 @@ export default function PalettesScreen() {
             </View>
 
             {/* Actions */}
-            <View className="flex-row gap-3">
-              <TouchableOpacity
-                onPress={() => selectedPalette && copyAllColors(selectedPalette.colors)}
-                activeOpacity={0.7}
-                className="flex-1 bg-primary px-4 py-3 rounded-full"
-              >
-                <Text className="text-background font-semibold text-center">Copy All</Text>
-              </TouchableOpacity>
+            <View className="gap-3">
+              <View className="flex-row gap-3">
+                <TouchableOpacity
+                  onPress={() => selectedPalette && copyAllColors(selectedPalette.colors)}
+                  activeOpacity={0.7}
+                  className="flex-1 bg-primary px-4 py-3 rounded-full"
+                >
+                  <Text className="text-background font-semibold text-center">Copy All</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => selectedPalette && sharePalette(selectedPalette)}
+                  activeOpacity={0.7}
+                  className="flex-1 bg-surface border border-primary px-4 py-3 rounded-full"
+                >
+                  <Text className="text-primary font-semibold text-center">Share</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 onPress={() => selectedPalette && deletePalette(selectedPalette.id)}
                 activeOpacity={0.7}
-                className="flex-1 bg-surface border border-error px-4 py-3 rounded-full"
+                className="bg-surface border border-error px-4 py-3 rounded-full"
               >
                 <Text className="text-error font-semibold text-center">Delete</Text>
               </TouchableOpacity>

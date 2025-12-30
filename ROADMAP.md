@@ -1,6 +1,6 @@
 # QuickColor Pro - Roadmap
 
-## Current Status: MVP (v1.0.0)
+## Current Status: MVP Complete (v1.0.0)
 
 ### Implemented
 - Photo color picker with draggable magnifier
@@ -9,31 +9,37 @@
 - Dark mode UI
 - Tab navigation (Home, Palettes, Settings)
 - Play Store assets and listing
+- Tap-to-copy HEX/RGB/HSV values with haptic feedback
+- Palette persistence (save, load, delete, edit names)
+- Recent colors display on Home screen
+- CSS gradient code copy
+- Free tier limit (5 palettes)
+- Haptic feedback throughout app (toggle-able in settings)
 
 ### Not Yet Implemented
-- Copy to clipboard functionality
-- Palette persistence (AsyncStorage)
-- AdMob integration
+- AdMob integration (placeholder UI only)
+- In-app purchases (placeholder UI only)
+- PNG/SVG export (placeholder only)
 
 ---
 
-## Phase 1: Core Feature Completion (Priority: High)
+## Phase 1: Core Feature Completion ✅ COMPLETE
 
-### 1.1 Clipboard Support
-- [ ] Tap-to-copy HEX/RGB/HSV values
-- [ ] Haptic feedback on copy
-- [ ] Toast notification confirmation
+### 1.1 Clipboard Support ✅
+- [x] Tap-to-copy HEX/RGB/HSV values
+- [x] Haptic feedback on copy
+- [x] Alert notification confirmation
 
-### 1.2 Palette Storage
-- [ ] Save palettes to AsyncStorage
-- [ ] Load saved palettes on app start
-- [ ] Delete palettes
-- [ ] Edit palette names
+### 1.2 Palette Storage ✅
+- [x] Save palettes to AsyncStorage
+- [x] Load saved palettes on app start
+- [x] Delete palettes with confirmation
+- [x] Edit palette names
 
-### 1.3 Recent Colors
-- [ ] Store last 10 picked colors
-- [ ] Display in Home screen
-- [ ] Quick access to recent colors
+### 1.3 Recent Colors ✅
+- [x] Store recent picked colors
+- [x] Display in Home screen
+- [x] Quick access to recent colors
 
 ---
 
@@ -68,9 +74,9 @@
 - [ ] Tetradic (square)
 
 ### 3.3 Export Enhancements
-- [ ] Export palette as PNG
+- [ ] Export palette as PNG (placeholder exists)
 - [ ] Export palette as SVG (Pro)
-- [ ] Copy CSS gradient code (Pro)
+- [x] Copy CSS gradient code
 - [ ] Share palettes via system share sheet
 
 ---
@@ -89,7 +95,7 @@
 - [ ] Sketch palette format
 
 ### 4.3 Accessibility
-- [ ] WCAG contrast checker
+- [ ] WCAG contrast checker (utility function exists, needs UI)
 - [ ] Color blindness simulator
 - [ ] Accessible color suggestions
 

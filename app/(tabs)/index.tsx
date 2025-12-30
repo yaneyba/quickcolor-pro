@@ -59,6 +59,11 @@ export default function HomeScreen() {
     router.push("/gradient-generator" as any);
   };
 
+  const navigateToColorHarmony = () => {
+    handlePress();
+    router.push("/color-harmony" as any);
+  };
+
   const selectRecentColor = (color: string) => {
     handlePress();
     setSelectedColor(color);
@@ -166,6 +171,24 @@ export default function HomeScreen() {
                 <View className="flex-1">
                   <Text className="text-lg font-semibold text-foreground">Gradient Generator</Text>
                   <Text className="text-sm text-muted">Create beautiful gradients</Text>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.muted} />
+              </View>
+            </TouchableOpacity>
+
+            {/* Color Harmony Card */}
+            <TouchableOpacity
+              onPress={navigateToColorHarmony}
+              activeOpacity={0.7}
+              className="bg-surface rounded-2xl p-6 border border-border"
+            >
+              <View className="flex-row items-center gap-4">
+                <View className="w-12 h-12 rounded-full bg-primary/20 items-center justify-center">
+                  <IconSymbol name="wand.and.stars" size={24} color={colors.primary} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-lg font-semibold text-foreground">Color Harmony</Text>
+                  <Text className="text-sm text-muted">Generate color schemes</Text>
                 </View>
                 <IconSymbol name="chevron.right" size={20} color={colors.muted} />
               </View>

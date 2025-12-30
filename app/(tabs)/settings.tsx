@@ -4,11 +4,25 @@ import * as Haptics from "expo-haptics";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
+import { ComingSoonModal } from "@/components/coming-soon-modal";
 
 export default function SettingsScreen() {
   const colors = useColors();
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
+  const [comingSoon, setComingSoon] = useState<{
+    visible: boolean;
+    feature: string;
+    description: string;
+    icon: string;
+  }>({ visible: false, feature: "", description: "", icon: "sparkles" });
+
+  const showComingSoon = (feature: string, description: string, icon: string = "sparkles") => {
+    if (Platform.OS !== "web" && hapticEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setComingSoon({ visible: true, feature, description, icon });
+  };
 
   const handlePress = () => {
     if (Platform.OS !== "web" && hapticEnabled) {
@@ -108,7 +122,11 @@ export default function SettingsScreen() {
                 </View>
               </View>
               <TouchableOpacity
-                onPress={handlePress}
+                onPress={() => showComingSoon(
+                  "Pro Upgrade",
+                  "Unlock unlimited palettes, remove ads, and get premium export features. One-time payment of $2.99.",
+                  "star"
+                )}
                 activeOpacity={0.7}
                 className="bg-primary px-6 py-3 rounded-full"
               >
@@ -162,6 +180,15 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Coming Soon Modal */}
+      <ComingSoonModal
+        visible={comingSoon.visible}
+        onClose={() => setComingSoon({ ...comingSoon, visible: false })}
+        featureName={comingSoon.feature}
+        description={comingSoon.description}
+        icon={comingSoon.icon}
+      />
     </ScreenContainer>
   );
 }

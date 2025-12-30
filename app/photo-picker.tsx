@@ -19,10 +19,11 @@ import Animated, {
   withSpring,
   runOnJS,
 } from "react-native-reanimated";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { getColorFormats } from "@/lib/color-utils";
+import { getColorFormats, hexToRgb, rgbToHsv, hsvToRgb, rgbToHex } from "@/lib/color-utils";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const PICKER_SIZE = 100;
@@ -40,6 +41,81 @@ export default function PhotoPickerScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [pickedColor, setPickedColor] = useState("#FF6B35");
   const [colorFormats, setColorFormats] = useState(getColorFormats("#FF6B35"));
+  const RECENT_COLORS_KEY = "@quickcolor_recent";
+  const PALETTES_KEY = "@quickcolor_palettes";
+
+  const saveColorToRecent = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(RECENT_COLORS_KEY);
+      let recentColors = stored ? JSON.parse(stored) : [];
+
+      // Remove if already exists, then add to front
+      recentColors = recentColors.filter((c: string) => c !== pickedColor);
+      recentColors.unshift(pickedColor);
+
+      // Keep only last 10
+      recentColors = recentColors.slice(0, 10);
+
+      await AsyncStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(recentColors));
+
+      if (Platform.OS !== "web") {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      Alert.alert("Saved!", `${pickedColor} saved to recent colors`);
+    } catch (error) {
+      Alert.alert("Error", "Failed to save color");
+    }
+  };
+
+  const extractPalette = async () => {
+    // Generate a palette based on the picked color using harmony
+    // Since we can't actually read pixels from the image in React Native without native modules,
+    // we'll generate a palette using color harmony from the picked color
+    const baseColor = pickedColor;
+    const rgb = hexToRgb(baseColor);
+    const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+
+    // Generate analogous + complementary palette
+    const palette = [baseColor];
+
+    // Add 2 analogous colors
+    for (const offset of [-30, 30]) {
+      const newH = (hsv.h + offset + 360) % 360;
+      const newRgb = hsvToRgb(newH, hsv.s, hsv.v);
+      palette.push(rgbToHex(newRgb.r, newRgb.g, newRgb.b));
+    }
+
+    // Add complementary
+    const compH = (hsv.h + 180) % 360;
+    const compRgb = hsvToRgb(compH, hsv.s, hsv.v);
+    palette.push(rgbToHex(compRgb.r, compRgb.g, compRgb.b));
+
+    // Add a lighter/darker variant
+    const darkerRgb = hsvToRgb(hsv.h, hsv.s, Math.max(20, hsv.v - 30));
+    palette.push(rgbToHex(darkerRgb.r, darkerRgb.g, darkerRgb.b));
+
+    // Save to palettes
+    try {
+      const stored = await AsyncStorage.getItem(PALETTES_KEY);
+      const palettes = stored ? JSON.parse(stored) : [];
+
+      const newPalette = {
+        id: Date.now(),
+        name: "Photo Palette",
+        colors: palette,
+        date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      };
+
+      await AsyncStorage.setItem(PALETTES_KEY, JSON.stringify([newPalette, ...palettes]));
+
+      if (Platform.OS !== "web") {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      Alert.alert("Palette Created!", "5-color palette saved based on your picked color");
+    } catch (error) {
+      Alert.alert("Error", "Failed to create palette");
+    }
+  };
 
   // Track the last position for gesture continuity
   const lastTranslateX = useSharedValue(SCREEN_WIDTH / 2 - PICKER_SIZE / 2);
@@ -231,12 +307,7 @@ export default function PhotoPickerScreen() {
               </TouchableOpacity>
               {imageUri && (
                 <TouchableOpacity
-                  onPress={() => {
-                    if (Platform.OS !== "web") {
-                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                    }
-                    Alert.alert("Saved!", "Color saved to your palettes");
-                  }}
+                  onPress={saveColorToRecent}
                   activeOpacity={0.7}
                   className="flex-1 bg-surface border border-border px-4 py-3 rounded-full"
                 >
@@ -247,12 +318,7 @@ export default function PhotoPickerScreen() {
 
             {imageUri && (
               <TouchableOpacity
-                onPress={() => {
-                  if (Platform.OS !== "web") {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  Alert.alert("Extract Palette", "This will generate a 5-color palette from the photo.");
-                }}
+                onPress={extractPalette}
                 activeOpacity={0.7}
                 className="bg-surface border border-primary px-4 py-3 rounded-full"
               >

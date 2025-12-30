@@ -238,3 +238,251 @@ export function generateGradient(
 
   return gradient;
 }
+
+/**
+ * Color Harmony Types
+ */
+export type HarmonyType =
+  | "complementary"
+  | "triadic"
+  | "analogous"
+  | "split-complementary"
+  | "tetradic";
+
+/**
+ * Get complementary color (opposite on color wheel)
+ */
+export function getComplementary(hex: string): string[] {
+  const rgb = hexToRgb(hex);
+  const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+  const complementaryH = (hsv.h + 180) % 360;
+  const complementaryRgb = hsvToRgb(complementaryH, hsv.s, hsv.v);
+  return [hex, rgbToHex(complementaryRgb.r, complementaryRgb.g, complementaryRgb.b)];
+}
+
+/**
+ * Get triadic colors (3 colors equally spaced on color wheel)
+ */
+export function getTriadic(hex: string): string[] {
+  const rgb = hexToRgb(hex);
+  const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+
+  const colors = [hex];
+  for (const offset of [120, 240]) {
+    const newH = (hsv.h + offset) % 360;
+    const newRgb = hsvToRgb(newH, hsv.s, hsv.v);
+    colors.push(rgbToHex(newRgb.r, newRgb.g, newRgb.b));
+  }
+  return colors;
+}
+
+/**
+ * Get analogous colors (adjacent colors on color wheel)
+ */
+export function getAnalogous(hex: string): string[] {
+  const rgb = hexToRgb(hex);
+  const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+
+  const colors = [];
+  for (const offset of [-30, -15, 0, 15, 30]) {
+    const newH = (hsv.h + offset + 360) % 360;
+    const newRgb = hsvToRgb(newH, hsv.s, hsv.v);
+    colors.push(rgbToHex(newRgb.r, newRgb.g, newRgb.b));
+  }
+  return colors;
+}
+
+/**
+ * Get split-complementary colors (complementary + adjacent)
+ */
+export function getSplitComplementary(hex: string): string[] {
+  const rgb = hexToRgb(hex);
+  const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+
+  const colors = [hex];
+  for (const offset of [150, 210]) {
+    const newH = (hsv.h + offset) % 360;
+    const newRgb = hsvToRgb(newH, hsv.s, hsv.v);
+    colors.push(rgbToHex(newRgb.r, newRgb.g, newRgb.b));
+  }
+  return colors;
+}
+
+/**
+ * Get tetradic/square colors (4 colors equally spaced)
+ */
+export function getTetradic(hex: string): string[] {
+  const rgb = hexToRgb(hex);
+  const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+
+  const colors = [hex];
+  for (const offset of [90, 180, 270]) {
+    const newH = (hsv.h + offset) % 360;
+    const newRgb = hsvToRgb(newH, hsv.s, hsv.v);
+    colors.push(rgbToHex(newRgb.r, newRgb.g, newRgb.b));
+  }
+  return colors;
+}
+
+/**
+ * Get harmony colors by type
+ */
+export function getHarmonyColors(hex: string, type: HarmonyType): string[] {
+  switch (type) {
+    case "complementary":
+      return getComplementary(hex);
+    case "triadic":
+      return getTriadic(hex);
+    case "analogous":
+      return getAnalogous(hex);
+    case "split-complementary":
+      return getSplitComplementary(hex);
+    case "tetradic":
+      return getTetradic(hex);
+    default:
+      return [hex];
+  }
+}
+
+/**
+ * Get WCAG accessibility level based on contrast ratio
+ */
+export function getWcagLevel(contrastRatio: number): {
+  level: "AAA" | "AA" | "A" | "Fail";
+  largeText: boolean;
+  normalText: boolean;
+} {
+  return {
+    level: contrastRatio >= 7 ? "AAA" : contrastRatio >= 4.5 ? "AA" : contrastRatio >= 3 ? "A" : "Fail",
+    largeText: contrastRatio >= 3,
+    normalText: contrastRatio >= 4.5,
+  };
+}
+
+/**
+ * Simulate color as seen by colorblind users
+ */
+export function simulateColorBlindness(
+  hex: string,
+  type: "protanopia" | "deuteranopia" | "tritanopia"
+): string {
+  const rgb = hexToRgb(hex);
+  let r = rgb.r / 255;
+  let g = rgb.g / 255;
+  let b = rgb.b / 255;
+
+  // Transformation matrices for different types of color blindness
+  const matrices = {
+    protanopia: [
+      [0.567, 0.433, 0],
+      [0.558, 0.442, 0],
+      [0, 0.242, 0.758],
+    ],
+    deuteranopia: [
+      [0.625, 0.375, 0],
+      [0.7, 0.3, 0],
+      [0, 0.3, 0.7],
+    ],
+    tritanopia: [
+      [0.95, 0.05, 0],
+      [0, 0.433, 0.567],
+      [0, 0.475, 0.525],
+    ],
+  };
+
+  const matrix = matrices[type];
+  const newR = Math.min(255, Math.max(0, Math.round((matrix[0][0] * r + matrix[0][1] * g + matrix[0][2] * b) * 255)));
+  const newG = Math.min(255, Math.max(0, Math.round((matrix[1][0] * r + matrix[1][1] * g + matrix[1][2] * b) * 255)));
+  const newB = Math.min(255, Math.max(0, Math.round((matrix[2][0] * r + matrix[2][1] * g + matrix[2][2] * b) * 255)));
+
+  return rgbToHex(newR, newG, newB);
+}
+
+/**
+ * Extract dominant colors from image using k-means-like clustering
+ */
+export function extractDominantColors(
+  imageData: Uint8ClampedArray,
+  width: number,
+  height: number,
+  colorCount: number = 5
+): string[] {
+  const pixels: RGB[] = [];
+  const step = Math.max(1, Math.floor((width * height) / 10000)); // Sample max 10000 pixels
+
+  for (let i = 0; i < imageData.length; i += 4 * step) {
+    const r = imageData[i];
+    const g = imageData[i + 1];
+    const b = imageData[i + 2];
+    const a = imageData[i + 3];
+
+    // Skip transparent pixels
+    if (a < 128) continue;
+
+    // Skip very dark or very light pixels
+    const brightness = (r + g + b) / 3;
+    if (brightness < 20 || brightness > 235) continue;
+
+    pixels.push({ r, g, b });
+  }
+
+  if (pixels.length === 0) {
+    return ["#FF6B35", "#4ADE80", "#F87171", "#FBBF24", "#0a7ea4"];
+  }
+
+  // Simple clustering by quantizing colors
+  const colorMap = new Map<string, { count: number; r: number; g: number; b: number }>();
+
+  for (const pixel of pixels) {
+    // Quantize to reduce color space (divide by 32 to get ~8 levels per channel)
+    const qr = Math.floor(pixel.r / 32) * 32;
+    const qg = Math.floor(pixel.g / 32) * 32;
+    const qb = Math.floor(pixel.b / 32) * 32;
+    const key = `${qr},${qg},${qb}`;
+
+    const existing = colorMap.get(key);
+    if (existing) {
+      existing.count++;
+      existing.r += pixel.r;
+      existing.g += pixel.g;
+      existing.b += pixel.b;
+    } else {
+      colorMap.set(key, { count: 1, r: pixel.r, g: pixel.g, b: pixel.b });
+    }
+  }
+
+  // Sort by count and get top colors
+  const sortedColors = Array.from(colorMap.entries())
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, colorCount * 2); // Get more than needed to filter similar colors
+
+  // Get average color for each cluster and filter similar colors
+  const result: string[] = [];
+  for (const [, data] of sortedColors) {
+    const avgR = Math.round(data.r / data.count);
+    const avgG = Math.round(data.g / data.count);
+    const avgB = Math.round(data.b / data.count);
+    const hex = rgbToHex(avgR, avgG, avgB);
+
+    // Check if too similar to existing colors
+    const isSimilar = result.some((existingHex) => {
+      const existingRgb = hexToRgb(existingHex);
+      const diff = Math.abs(existingRgb.r - avgR) + Math.abs(existingRgb.g - avgG) + Math.abs(existingRgb.b - avgB);
+      return diff < 60; // Threshold for similarity
+    });
+
+    if (!isSimilar) {
+      result.push(hex);
+    }
+
+    if (result.length >= colorCount) break;
+  }
+
+  // Fill with defaults if not enough colors
+  const defaults = ["#FF6B35", "#4ADE80", "#F87171", "#FBBF24", "#0a7ea4"];
+  while (result.length < colorCount) {
+    result.push(defaults[result.length % defaults.length]);
+  }
+
+  return result;
+}

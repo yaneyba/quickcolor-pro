@@ -386,7 +386,7 @@ eas build --platform android --profile preview
 - **Code Issues:** Review todo.md for known limitations
 
 ### For Users (Post-Launch)
-- **Email:** support@quickcolorpro.com
+- **Email:** support@quickcolor.pro
 - **Response Time:** Within 24 hours
 
 ---

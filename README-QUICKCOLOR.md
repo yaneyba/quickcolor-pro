@@ -441,7 +441,7 @@ See `play-store-assets/privacy-policy.md`
 ## 🤝 Support
 
 ### User Support
-- **Email:** support@quickcolorpro.com
+- **Email:** support@quickcolor.pro
 - **Response Time:** Within 24 hours
 - **FAQ:** (To be created on website)
 

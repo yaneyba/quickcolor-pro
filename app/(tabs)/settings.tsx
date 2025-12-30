@@ -1,5 +1,6 @@
 import { ScrollView, Text, View, TouchableOpacity, Switch, Platform } from "react-native";
 import { useState } from "react";
+import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -8,6 +9,7 @@ import { ComingSoonModal } from "@/components/coming-soon-modal";
 
 export default function SettingsScreen() {
   const colors = useColors();
+  const router = useRouter();
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
   const [comingSoon, setComingSoon] = useState<{
@@ -162,7 +164,10 @@ export default function SettingsScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={handlePress}
+              onPress={() => {
+                handlePress();
+                router.push("/privacy-policy");
+              }}
               activeOpacity={0.7}
               className="bg-surface rounded-2xl p-4 border border-border"
             >

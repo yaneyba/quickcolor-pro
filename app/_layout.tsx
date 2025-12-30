@@ -89,6 +89,7 @@ export default function RootLayout() {
             <Stack.Screen name="photo-picker" />
             <Stack.Screen name="gradient-generator" />
             <Stack.Screen name="color-harmony" />
+            <Stack.Screen name="privacy-policy" />
             <Stack.Screen name="oauth/callback" />
           </Stack>
           <StatusBar style="auto" />

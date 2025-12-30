@@ -123,7 +123,7 @@ Join 100,000+ satisfied users who trust QuickColor Pro for their color picking n
 
 **📧 SUPPORT**
 
-Need help? Contact us at support@quickcolorpro.com
+Need help? Contact us at support@quickcolor.pro
 We respond to all inquiries within 24 hours.
 
 **Keywords:** color picker, eyedropper, color sampler, hex color, rgb color, palette generator, gradient maker, color tool, design app, developer tool, color code, screen color picker, photo color picker

@@ -87,7 +87,7 @@ You have the right to:
 
 If you have any questions about this Privacy Policy, please contact us:
 
-**Email:** support@quickcolorpro.com
+**Email:** support@quickcolor.pro
 **Response Time:** Within 24 hours
 
 ## Compliance

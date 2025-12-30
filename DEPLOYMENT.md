@@ -153,7 +153,7 @@ Upload from `play-store-assets/` folder:
 - **Content rating:** Everyone
 
 #### Contact Details
-- **Email:** support@quickcolorpro.com
+- **Email:** support@quickcolor.pro
 - **Website:** (Your website URL)
 - **Privacy policy:** (Host `privacy-policy.md` on your website and provide URL)
 
@@ -310,7 +310,7 @@ Based on 100M+ demand for color picker apps:
 ## Support & Maintenance
 
 ### User Support
-- **Email:** support@quickcolorpro.com
+- **Email:** support@quickcolor.pro
 - **Response time:** Within 24 hours
 - **Common issues:** Document in FAQ
 
@@ -368,6 +368,6 @@ Based on 100M+ demand for color picker apps:
 ## Contact
 
 For deployment assistance:
-- **Email:** support@quickcolorpro.com
+- **Email:** support@quickcolor.pro
 - **Documentation:** See README.md
 - **Issues:** GitHub Issues (if applicable)

@@ -1,38 +1,31 @@
 import { useState, useEffect } from "react";
 import { ScrollView, Text, View, TouchableOpacity, Platform, Alert } from "react-native";
 import * as Haptics from "expo-haptics";
-import * as Clipboard from "expo-clipboard";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
+import { useRecentColors, useColorService } from "@/hooks";
 import { getColorFormats } from "@/lib/color-utils";
-
-const RECENT_COLORS_KEY = "@quickcolor_recent";
-const DEFAULT_RECENT_COLORS = ["#FF6B35", "#4ADE80", "#F87171", "#FBBF24", "#0a7ea4"];
 
 export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
-  const [recentColors, setRecentColors] = useState<string[]>(DEFAULT_RECENT_COLORS);
+
+  // Use service hooks instead of direct AsyncStorage
+  const { colors: recentColors, loading } = useRecentColors();
+  const { copyToClipboard } = useColorService();
+
   const [selectedColor, setSelectedColor] = useState("#FF6B35");
   const [colorFormats, setColorFormats] = useState(getColorFormats("#FF6B35"));
 
+  // Update selected color when recent colors load
   useEffect(() => {
-    loadRecentColors();
-  }, []);
-
-  const loadRecentColors = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(RECENT_COLORS_KEY);
-      if (stored) {
-        setRecentColors(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error("Error loading recent colors:", error);
+    if (recentColors.length > 0 && selectedColor === "#FF6B35") {
+      setSelectedColor(recentColors[0]);
+      setColorFormats(getColorFormats(recentColors[0]));
     }
-  };
+  }, [recentColors]);
 
   const handlePress = () => {
     if (Platform.OS !== "web") {
@@ -70,12 +63,11 @@ export default function HomeScreen() {
     setColorFormats(getColorFormats(color));
   };
 
-  const copyToClipboard = async (text: string, format: string) => {
-    if (Platform.OS !== "web") {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  const handleCopyToClipboard = async (text: string, format: string) => {
+    const success = await copyToClipboard(text);
+    if (success) {
+      Alert.alert("Copied!", `${format} value copied to clipboard`);
     }
-    await Clipboard.setStringAsync(text);
-    Alert.alert("Copied!", `${format} value copied to clipboard`);
   };
 
   return (
@@ -93,7 +85,7 @@ export default function HomeScreen() {
           {/* Color Preview Circle */}
           <View className="items-center py-6">
             <TouchableOpacity
-              onPress={() => copyToClipboard(colorFormats.hex, "HEX")}
+              onPress={() => handleCopyToClipboard(colorFormats.hex, "HEX")}
               activeOpacity={0.8}
             >
               <View
@@ -102,13 +94,13 @@ export default function HomeScreen() {
               />
             </TouchableOpacity>
             <View className="mt-4 items-center gap-1">
-              <TouchableOpacity onPress={() => copyToClipboard(colorFormats.hex, "HEX")}>
+              <TouchableOpacity onPress={() => handleCopyToClipboard(colorFormats.hex, "HEX")}>
                 <Text className="text-xl font-bold text-foreground">{colorFormats.hex}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => copyToClipboard(colorFormats.rgbString, "RGB")}>
+              <TouchableOpacity onPress={() => handleCopyToClipboard(colorFormats.rgbString, "RGB")}>
                 <Text className="text-sm text-muted">{colorFormats.rgbString}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => copyToClipboard(colorFormats.hsvString, "HSV")}>
+              <TouchableOpacity onPress={() => handleCopyToClipboard(colorFormats.hsvString, "HSV")}>
                 <Text className="text-sm text-muted">{colorFormats.hsvString}</Text>
               </TouchableOpacity>
               <Text className="text-xs text-muted mt-1">Tap values to copy</Text>
@@ -198,27 +190,31 @@ export default function HomeScreen() {
           {/* Recent Colors */}
           <View className="gap-3">
             <Text className="text-base font-semibold text-foreground">Recent Colors</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex-row gap-3">
-                {recentColors.map((color, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => selectRecentColor(color)}
-                    onLongPress={() => copyToClipboard(color, "HEX")}
-                    activeOpacity={0.7}
-                    className="items-center gap-2"
-                  >
-                    <View
-                      className={`w-16 h-16 rounded-2xl shadow-sm ${
-                        selectedColor === color ? "border-2 border-primary" : ""
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
-                    <Text className="text-xs text-muted">{color}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
+            {loading ? (
+              <Text className="text-sm text-muted">Loading...</Text>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-3">
+                  {recentColors.map((color, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => selectRecentColor(color)}
+                      onLongPress={() => handleCopyToClipboard(color, "HEX")}
+                      activeOpacity={0.7}
+                      className="items-center gap-2"
+                    >
+                      <View
+                        className={`w-16 h-16 rounded-2xl shadow-sm ${
+                          selectedColor === color ? "border-2 border-primary" : ""
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                      <Text className="text-xs text-muted">{color}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            )}
             <Text className="text-xs text-muted text-center">
               Tap to preview - Long press to copy
             </Text>

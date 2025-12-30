@@ -138,6 +138,14 @@ export function hsvToRgb(h: number, s: number, v: number): RGB {
 }
 
 /**
+ * Validate a HEX color string
+ */
+export function isValidHex(hex: string): boolean {
+  const cleanHex = hex.replace("#", "");
+  return /^[0-9A-Fa-f]{6}$/.test(cleanHex) || /^[0-9A-Fa-f]{3}$/.test(cleanHex);
+}
+
+/**
  * Get all color formats from HEX
  */
 export function getColorFormats(hex: string): ColorFormats {

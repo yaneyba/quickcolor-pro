@@ -5,13 +5,16 @@ import * as Haptics from "expo-haptics";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
+import { useSettings } from "@/hooks";
 import { ComingSoonModal } from "@/components/coming-soon-modal";
 
 export default function SettingsScreen() {
   const colors = useColors();
   const router = useRouter();
-  const [hapticEnabled, setHapticEnabled] = useState(true);
-  const [autoSave, setAutoSave] = useState(true);
+
+  // Use settings service hook instead of local state
+  const { settings, toggleHaptic, toggleAutoSave, loading } = useSettings();
+
   const [comingSoon, setComingSoon] = useState<{
     visible: boolean;
     feature: string;
@@ -20,24 +23,41 @@ export default function SettingsScreen() {
   }>({ visible: false, feature: "", description: "", icon: "sparkles" });
 
   const showComingSoon = (feature: string, description: string, icon: string = "sparkles") => {
-    if (Platform.OS !== "web" && hapticEnabled) {
+    if (Platform.OS !== "web" && settings.hapticEnabled) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     setComingSoon({ visible: true, feature, description, icon });
   };
 
   const handlePress = () => {
-    if (Platform.OS !== "web" && hapticEnabled) {
+    if (Platform.OS !== "web" && settings.hapticEnabled) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
   };
 
-  const handleToggle = (setter: (value: boolean) => void, value: boolean) => {
-    setter(value);
-    if (Platform.OS !== "web" && hapticEnabled) {
+  const handleHapticToggle = async (value: boolean) => {
+    if (Platform.OS !== "web" && value) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+    await toggleHaptic();
   };
+
+  const handleAutoSaveToggle = async (value: boolean) => {
+    if (Platform.OS !== "web" && settings.hapticEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    await toggleAutoSave();
+  };
+
+  if (loading) {
+    return (
+      <ScreenContainer className="p-6">
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-muted">Loading settings...</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer className="p-6">
@@ -52,13 +72,15 @@ export default function SettingsScreen() {
           {/* App Settings Section */}
           <View className="gap-3">
             <Text className="text-base font-semibold text-foreground">App Settings</Text>
-            
+
             {/* Default Color Format */}
             <View className="bg-surface rounded-2xl p-4 border border-border">
               <View className="flex-row items-center justify-between">
                 <View className="flex-1">
                   <Text className="text-base text-foreground">Default Color Format</Text>
-                  <Text className="text-sm text-muted mt-1">HEX</Text>
+                  <Text className="text-sm text-muted mt-1">
+                    {settings.defaultColorFormat.toUpperCase()}
+                  </Text>
                 </View>
                 <IconSymbol name="chevron.right" size={20} color={colors.muted} />
               </View>
@@ -72,8 +94,8 @@ export default function SettingsScreen() {
                   <Text className="text-sm text-muted mt-1">Vibrate on interactions</Text>
                 </View>
                 <Switch
-                  value={hapticEnabled}
-                  onValueChange={(value) => handleToggle(setHapticEnabled, value)}
+                  value={settings.hapticEnabled}
+                  onValueChange={handleHapticToggle}
                   trackColor={{ false: colors.border, true: colors.primary }}
                   thumbColor={colors.background}
                 />
@@ -88,8 +110,8 @@ export default function SettingsScreen() {
                   <Text className="text-sm text-muted mt-1">Save picked colors automatically</Text>
                 </View>
                 <Switch
-                  value={autoSave}
-                  onValueChange={(value) => handleToggle(setAutoSave, value)}
+                  value={settings.autoSave}
+                  onValueChange={handleAutoSaveToggle}
                   trackColor={{ false: colors.border, true: colors.primary }}
                   thumbColor={colors.background}
                 />
@@ -124,11 +146,13 @@ export default function SettingsScreen() {
                 </View>
               </View>
               <TouchableOpacity
-                onPress={() => showComingSoon(
-                  "Pro Upgrade",
-                  "Unlock unlimited palettes, remove ads, and get premium export features. One-time payment of $2.99.",
-                  "star"
-                )}
+                onPress={() =>
+                  showComingSoon(
+                    "Pro Upgrade",
+                    "Unlock unlimited palettes, remove ads, and get premium export features. One-time payment of $2.99.",
+                    "star"
+                  )
+                }
                 activeOpacity={0.7}
                 className="bg-primary px-6 py-3 rounded-full"
               >
@@ -140,7 +164,7 @@ export default function SettingsScreen() {
           {/* About Section */}
           <View className="gap-3">
             <Text className="text-base font-semibold text-foreground">About</Text>
-            
+
             <TouchableOpacity
               onPress={handlePress}
               activeOpacity={0.7}

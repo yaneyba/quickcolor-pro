@@ -28,10 +28,13 @@ const MAPPING: Record<string, MaterialIconName> = {
   "arrow.left": "arrow-back",
   "plus": "add",
   "trash": "delete",
+  "trash.fill": "delete",
   "doc.on.doc": "content-copy",
   "xmark": "close",
   "checkmark": "check",
   "square.and.arrow.up": "share",
+  "wand.and.stars": "auto-fix-high",
+  "sparkles": "auto-awesome",
 };
 
 type IconSymbolName = keyof typeof MAPPING;

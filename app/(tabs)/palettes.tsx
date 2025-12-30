@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ScrollView, Text, View, TouchableOpacity, Platform, Alert, TextInput, Modal, Share } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, Platform, TextInput, Modal, Share } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -12,6 +12,11 @@ interface Palette {
   name: string;
   colors: string[];
   date: string;
+}
+
+interface ToastMessage {
+  title: string;
+  message: string;
 }
 
 const STORAGE_KEY = "@quickcolor_palettes";
@@ -46,11 +51,17 @@ export default function PalettesScreen() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPaletteName, setNewPaletteName] = useState("");
   const [selectedPalette, setSelectedPalette] = useState<Palette | null>(null);
+  const [paletteToDelete, setPaletteToDelete] = useState<number | null>(null);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
 
   // Load palettes from storage on mount
   useEffect(() => {
     loadPalettes();
   }, []);
+
+  const showToast = (title: string, message: string) => {
+    setToast({ title, message });
+  };
 
   const loadPalettes = async () => {
     try {
@@ -76,7 +87,7 @@ export default function PalettesScreen() {
       setPalettes(newPalettes);
     } catch (error) {
       console.error("Error saving palettes:", error);
-      Alert.alert("Error", "Failed to save palettes");
+      showToast("Error", "Failed to save palettes");
     }
   };
 
@@ -88,7 +99,7 @@ export default function PalettesScreen() {
 
   const createNewPalette = () => {
     if (palettes.length >= MAX_FREE_PALETTES) {
-      Alert.alert("Limit Reached", "Upgrade to Pro for unlimited palettes!");
+      showToast("Limit Reached", "Upgrade to Pro for unlimited palettes!");
       return;
     }
     handlePress();
@@ -97,7 +108,7 @@ export default function PalettesScreen() {
 
   const saveNewPalette = () => {
     if (!newPaletteName.trim()) {
-      Alert.alert("Error", "Please enter a palette name");
+      showToast("Error", "Please enter a palette name");
       return;
     }
     handlePress();
@@ -113,22 +124,21 @@ export default function PalettesScreen() {
   };
 
   const deletePalette = (id: number) => {
-    Alert.alert(
-      "Delete Palette",
-      "Are you sure you want to delete this palette?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            handlePress();
-            savePalettes(palettes.filter((p) => p.id !== id));
-            setSelectedPalette(null);
-          },
-        },
-      ]
-    );
+    handlePress();
+    setPaletteToDelete(id);
+  };
+
+  const confirmDelete = () => {
+    if (paletteToDelete === null) return;
+    handlePress();
+    savePalettes(palettes.filter((p) => p.id !== paletteToDelete));
+    setSelectedPalette(null);
+    setPaletteToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    handlePress();
+    setPaletteToDelete(null);
   };
 
   const copyColorToClipboard = async (color: string) => {
@@ -136,7 +146,7 @@ export default function PalettesScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
     await Clipboard.setStringAsync(color);
-    Alert.alert("Copied!", `${color} copied to clipboard`);
+    showToast("Copied!", `${color} copied to clipboard`);
   };
 
   const copyAllColors = async (paletteColors: string[]) => {
@@ -144,13 +154,13 @@ export default function PalettesScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
     await Clipboard.setStringAsync(paletteColors.join(", "));
-    Alert.alert("Copied!", "All colors copied to clipboard");
+    showToast("Copied!", "All colors copied to clipboard");
   };
 
   const sharePalette = async (palette: Palette) => {
     try {
       const colorList = palette.colors.join("\n");
-      const message = `🎨 ${palette.name}\n\n${colorList}\n\nCreated with QuickColor Pro`;
+      const message = `${palette.name}\n\n${colorList}\n\nCreated with QuickColor Pro`;
 
       await Share.share({
         message,
@@ -354,6 +364,100 @@ export default function PalettesScreen() {
                 <Text className="text-error font-semibold text-center">Delete</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={paletteToDelete !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={cancelDelete}
+      >
+        <View
+          className="flex-1 justify-center items-center px-6"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <View
+            className="bg-background rounded-3xl p-6 w-full"
+            style={{ maxWidth: 320 }}
+          >
+            <Text className="text-xl font-bold text-foreground text-center">
+              Delete Palette
+            </Text>
+            <Text className="text-sm text-muted text-center mt-2 mb-6">
+              Are you sure you want to delete this palette? This action cannot be undone.
+            </Text>
+
+            <TouchableOpacity
+              onPress={confirmDelete}
+              activeOpacity={0.7}
+              style={{
+                backgroundColor: "#EF4444",
+                paddingVertical: 16,
+                borderRadius: 9999,
+                marginBottom: 12,
+              }}
+            >
+              <Text style={{ color: "#FFFFFF", fontWeight: "600", textAlign: "center" }}>
+                Delete
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={cancelDelete}
+              activeOpacity={0.7}
+              style={{
+                backgroundColor: colors.surface,
+                borderWidth: 1,
+                borderColor: colors.border,
+                paddingVertical: 16,
+                borderRadius: 9999,
+              }}
+            >
+              <Text style={{ color: colors.foreground, fontWeight: "600", textAlign: "center" }}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Toast Modal */}
+      <Modal
+        visible={toast !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setToast(null)}
+      >
+        <View
+          className="flex-1 justify-center items-center px-6"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <View
+            className="bg-background rounded-3xl p-6 w-full"
+            style={{ maxWidth: 320 }}
+          >
+            <Text className="text-xl font-bold text-foreground text-center">
+              {toast?.title}
+            </Text>
+            <Text className="text-sm text-muted text-center mt-2 mb-6">
+              {toast?.message}
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setToast(null)}
+              activeOpacity={0.7}
+              style={{
+                backgroundColor: colors.primary,
+                paddingVertical: 16,
+                borderRadius: 9999,
+              }}
+            >
+              <Text style={{ color: colors.background, fontWeight: "600", textAlign: "center" }}>
+                OK
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>

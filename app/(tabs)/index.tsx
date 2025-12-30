@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { ScrollView, Text, View, TouchableOpacity, Platform, Alert } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { ScreenContainer } from "@/components/screen-container";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { useColors } from "@/hooks/use-colors";
-import { useRecentColors, useColorService } from "@/hooks";
+import { ScreenContainer } from "@/ui-components/screen-container";
+import { IconSymbol } from "@/ui-components/ui/icon-symbol";
+import { useColors } from "@/ui-hooks/use-colors";
+import { useRecentColors, useColorService } from "@/ui-hooks";
 import { getColorFormats } from "@/lib/color-utils";
 
 export default function HomeScreen() {

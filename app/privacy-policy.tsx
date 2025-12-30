@@ -1,8 +1,8 @@
 import { ScrollView, Text, View, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import { ScreenContainer } from "@/components/screen-container";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { useColors } from "@/hooks/use-colors";
+import { ScreenContainer } from "@/ui-components/screen-container";
+import { IconSymbol } from "@/ui-components/ui/icon-symbol";
+import { useColors } from "@/ui-hooks/use-colors";
 
 export default function PrivacyPolicyScreen() {
   const colors = useColors();

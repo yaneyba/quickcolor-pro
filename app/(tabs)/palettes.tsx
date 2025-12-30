@@ -3,9 +3,9 @@ import { ScrollView, Text, View, TouchableOpacity, Platform, TextInput, Modal, S
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ScreenContainer } from "@/components/screen-container";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { useColors } from "@/hooks/use-colors";
+import { ScreenContainer } from "@/ui-components/screen-container";
+import { IconSymbol } from "@/ui-components/ui/icon-symbol";
+import { useColors } from "@/ui-hooks/use-colors";
 
 interface Palette {
   id: number;

@@ -11,7 +11,7 @@ import {
   type Palette,
   type CreatePaletteInput,
   type UpdatePaletteInput,
-} from "@/services";
+} from "@/bll-services";
 
 interface UsePalettesResult {
   /** Current list of palettes */

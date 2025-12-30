@@ -7,7 +7,7 @@
  * - Palette limits (free vs pro)
  */
 
-import { DataProviderFactory, type IDataProvider, type Palette } from "@/data/providers";
+import { DataProviderFactory, type IDataProvider, type Palette } from "@/dal-data/providers";
 import type {
   ServiceResult,
   IService,

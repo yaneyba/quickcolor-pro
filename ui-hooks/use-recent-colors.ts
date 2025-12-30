@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { ColorService } from "@/services";
+import { ColorService } from "@/bll-services";
 
 interface UseRecentColorsResult {
   /** Current list of recent colors */

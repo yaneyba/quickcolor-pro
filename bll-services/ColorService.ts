@@ -12,7 +12,7 @@ import * as Clipboard from "expo-clipboard";
 import { Platform } from "react-native";
 import * as Haptics from "expo-haptics";
 
-import { DataProviderFactory, type IDataProvider } from "@/data/providers";
+import { DataProviderFactory, type IDataProvider } from "@/dal-data/providers";
 import {
   hexToRgb,
   rgbToHsv,

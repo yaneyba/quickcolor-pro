@@ -8,7 +8,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useColors } from "@/hooks/use-colors";
+import { useColors } from "@/ui-hooks/use-colors";
 
 const HEADER_HEIGHT = 250;
 

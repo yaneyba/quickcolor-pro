@@ -6,7 +6,7 @@
  */
 
 import { useCallback } from "react";
-import { ColorService } from "@/services";
+import { ColorService } from "@/bll-services";
 import type { ColorFormats } from "@/lib/color-utils";
 
 interface UseColorServiceResult {

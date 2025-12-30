@@ -11,7 +11,7 @@ import {
   type UserSettings,
   type ColorFormat,
   type ThemeOption,
-} from "@/services";
+} from "@/bll-services";
 
 interface UseSettingsResult {
   /** Current settings */

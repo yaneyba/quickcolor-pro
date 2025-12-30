@@ -1,7 +1,7 @@
 import { Modal, View, Text, TouchableOpacity, Platform } from "react-native";
 import * as Haptics from "expo-haptics";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { useColors } from "@/hooks/use-colors";
+import { IconSymbol } from "@/ui-components/ui/icon-symbol";
+import { useColors } from "@/ui-hooks/use-colors";
 
 interface ComingSoonModalProps {
   visible: boolean;

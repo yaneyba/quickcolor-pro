@@ -13,11 +13,11 @@ import { Stack, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
-import { ScreenContainer } from "@/components/screen-container";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ScreenContainer } from "@/ui-components/screen-container";
+import { IconSymbol } from "@/ui-components/ui/icon-symbol";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useColors } from "@/hooks/use-colors";
-import { ComingSoonModal } from "@/components/coming-soon-modal";
+import { useColors } from "@/ui-hooks/use-colors";
+import { ComingSoonModal } from "@/ui-components/coming-soon-modal";
 
 const PALETTES_KEY = "@quickcolor_palettes";
 

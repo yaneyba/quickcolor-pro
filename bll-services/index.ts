@@ -28,7 +28,7 @@ export {
 } from "./SettingsService";
 
 // Re-export common types from DAL that UI might need
-export type { Palette, UserSettings } from "@/data/providers";
+export type { Palette, UserSettings } from "@/dal-data/providers";
 
 /**
  * Initialize all services

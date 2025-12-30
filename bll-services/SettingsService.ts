@@ -7,7 +7,7 @@
  * - Settings validation and persistence
  */
 
-import { DataProviderFactory, type IDataProvider, type UserSettings } from "@/data/providers";
+import { DataProviderFactory, type IDataProvider, type UserSettings } from "@/dal-data/providers";
 import type { ServiceResult, IService, IObservableService, ServiceListener } from "./IService";
 
 // Constants

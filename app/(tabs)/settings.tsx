@@ -2,11 +2,11 @@ import { ScrollView, Text, View, TouchableOpacity, Switch, Platform } from "reac
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { ScreenContainer } from "@/components/screen-container";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { useColors } from "@/hooks/use-colors";
-import { useSettings } from "@/hooks";
-import { ComingSoonModal } from "@/components/coming-soon-modal";
+import { ScreenContainer } from "@/ui-components/screen-container";
+import { IconSymbol } from "@/ui-components/ui/icon-symbol";
+import { useColors } from "@/ui-hooks/use-colors";
+import { useSettings } from "@/ui-hooks";
+import { ComingSoonModal } from "@/ui-components/coming-soon-modal";
 
 export default function SettingsScreen() {
   const colors = useColors();

@@ -1,18 +1,52 @@
-import { ScrollView, Text, View, TouchableOpacity, Platform } from "react-native";
+import { useState, useEffect } from "react";
+import { ScrollView, Text, View, TouchableOpacity, Platform, Alert } from "react-native";
 import * as Haptics from "expo-haptics";
+import * as Clipboard from "expo-clipboard";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
+import { getColorFormats } from "@/lib/color-utils";
+
+const RECENT_COLORS_KEY = "@quickcolor_recent";
+const DEFAULT_RECENT_COLORS = ["#FF6B35", "#4ADE80", "#F87171", "#FBBF24", "#0a7ea4"];
 
 export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
+  const [recentColors, setRecentColors] = useState<string[]>(DEFAULT_RECENT_COLORS);
+  const [selectedColor, setSelectedColor] = useState("#FF6B35");
+  const [colorFormats, setColorFormats] = useState(getColorFormats("#FF6B35"));
+
+  useEffect(() => {
+    loadRecentColors();
+  }, []);
+
+  const loadRecentColors = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(RECENT_COLORS_KEY);
+      if (stored) {
+        setRecentColors(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error("Error loading recent colors:", error);
+    }
+  };
 
   const handlePress = () => {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+  };
+
+  const navigateToScreenPicker = () => {
+    handlePress();
+    Alert.alert(
+      "Coming Soon",
+      "Screen Picker will be available in a future update. This feature will allow you to pick colors directly from anywhere on your screen.",
+      [{ text: "OK" }]
+    );
   };
 
   const navigateToPhotoPicker = () => {
@@ -23,6 +57,20 @@ export default function HomeScreen() {
   const navigateToGradientGenerator = () => {
     handlePress();
     router.push("/gradient-generator" as any);
+  };
+
+  const selectRecentColor = (color: string) => {
+    handlePress();
+    setSelectedColor(color);
+    setColorFormats(getColorFormats(color));
+  };
+
+  const copyToClipboard = async (text: string, format: string) => {
+    if (Platform.OS !== "web") {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    await Clipboard.setStringAsync(text);
+    Alert.alert("Copied!", `${format} value copied to clipboard`);
   };
 
   return (
@@ -39,28 +87,48 @@ export default function HomeScreen() {
 
           {/* Color Preview Circle */}
           <View className="items-center py-6">
-            <View className="w-32 h-32 rounded-full bg-primary shadow-lg" />
+            <TouchableOpacity
+              onPress={() => copyToClipboard(colorFormats.hex, "HEX")}
+              activeOpacity={0.8}
+            >
+              <View
+                className="w-32 h-32 rounded-full shadow-lg"
+                style={{ backgroundColor: selectedColor }}
+              />
+            </TouchableOpacity>
             <View className="mt-4 items-center gap-1">
-              <Text className="text-xl font-bold text-foreground">#FF6B35</Text>
-              <Text className="text-sm text-muted">rgb(255, 107, 53)</Text>
-              <Text className="text-sm text-muted">hsv(19°, 79%, 100%)</Text>
+              <TouchableOpacity onPress={() => copyToClipboard(colorFormats.hex, "HEX")}>
+                <Text className="text-xl font-bold text-foreground">{colorFormats.hex}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => copyToClipboard(colorFormats.rgbString, "RGB")}>
+                <Text className="text-sm text-muted">{colorFormats.rgbString}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => copyToClipboard(colorFormats.hsvString, "HSV")}>
+                <Text className="text-sm text-muted">{colorFormats.hsvString}</Text>
+              </TouchableOpacity>
+              <Text className="text-xs text-muted mt-1">Tap values to copy</Text>
             </View>
           </View>
 
           {/* Action Cards */}
           <View className="gap-4">
-            {/* Screen Picker Card */}
+            {/* Screen Picker Card - Coming Soon */}
             <TouchableOpacity
-              onPress={handlePress}
+              onPress={navigateToScreenPicker}
               activeOpacity={0.7}
               className="bg-surface rounded-2xl p-6 border border-border"
             >
               <View className="flex-row items-center gap-4">
-                <View className="w-12 h-12 rounded-full bg-primary/20 items-center justify-center">
-                  <IconSymbol name="house.fill" size={24} color={colors.primary} />
+                <View className="w-12 h-12 rounded-full bg-muted/20 items-center justify-center">
+                  <IconSymbol name="eyedropper" size={24} color={colors.muted} />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-lg font-semibold text-foreground">Screen Picker</Text>
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-lg font-semibold text-foreground">Screen Picker</Text>
+                    <View className="bg-muted/20 px-2 py-0.5 rounded">
+                      <Text className="text-xs text-muted">Coming Soon</Text>
+                    </View>
+                  </View>
                   <Text className="text-sm text-muted">Pick colors from your screen</Text>
                 </View>
                 <IconSymbol name="chevron.right" size={20} color={colors.muted} />
@@ -75,7 +143,7 @@ export default function HomeScreen() {
             >
               <View className="flex-row items-center gap-4">
                 <View className="w-12 h-12 rounded-full bg-primary/20 items-center justify-center">
-                  <IconSymbol name="house.fill" size={24} color={colors.primary} />
+                  <IconSymbol name="photo.fill" size={24} color={colors.primary} />
                 </View>
                 <View className="flex-1">
                   <Text className="text-lg font-semibold text-foreground">Photo Picker</Text>
@@ -93,7 +161,7 @@ export default function HomeScreen() {
             >
               <View className="flex-row items-center gap-4">
                 <View className="w-12 h-12 rounded-full bg-primary/20 items-center justify-center">
-                  <IconSymbol name="house.fill" size={24} color={colors.primary} />
+                  <IconSymbol name="paintbrush.fill" size={24} color={colors.primary} />
                 </View>
                 <View className="flex-1">
                   <Text className="text-lg font-semibold text-foreground">Gradient Generator</Text>
@@ -109,15 +177,18 @@ export default function HomeScreen() {
             <Text className="text-base font-semibold text-foreground">Recent Colors</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-3">
-                {["#FF6B35", "#4ADE80", "#F87171", "#FBBF24", "#0a7ea4"].map((color, index) => (
+                {recentColors.map((color, index) => (
                   <TouchableOpacity
                     key={index}
-                    onPress={handlePress}
+                    onPress={() => selectRecentColor(color)}
+                    onLongPress={() => copyToClipboard(color, "HEX")}
                     activeOpacity={0.7}
                     className="items-center gap-2"
                   >
                     <View
-                      className="w-16 h-16 rounded-2xl shadow-sm"
+                      className={`w-16 h-16 rounded-2xl shadow-sm ${
+                        selectedColor === color ? "border-2 border-primary" : ""
+                      }`}
                       style={{ backgroundColor: color }}
                     />
                     <Text className="text-xs text-muted">{color}</Text>
@@ -125,6 +196,9 @@ export default function HomeScreen() {
                 ))}
               </View>
             </ScrollView>
+            <Text className="text-xs text-muted text-center">
+              Tap to preview - Long press to copy
+            </Text>
           </View>
         </View>
       </ScrollView>

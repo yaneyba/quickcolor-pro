@@ -6,16 +6,28 @@ import {
   ScrollView,
   Platform,
   Alert,
+  TextInput,
+  Modal,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import * as Clipboard from "expo-clipboard";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { generateGradient } from "@/lib/color-utils";
+// Color utilities are imported but functions are available for future use
+// import { generateGradient, getColorFormats } from "@/lib/color-utils";
 
 type GradientType = "linear" | "radial" | "angular";
+
+// Preset colors for color picker
+const PRESET_COLORS = [
+  "#FF6B35", "#4ADE80", "#F87171", "#FBBF24", "#0a7ea4",
+  "#E879F9", "#38BDF8", "#A78BFA", "#FB923C", "#34D399",
+  "#F472B6", "#60A5FA", "#FACC15", "#2DD4BF", "#C084FC",
+  "#EF4444", "#22C55E", "#3B82F6", "#8B5CF6", "#EC4899",
+];
 
 export default function GradientGeneratorScreen() {
   const colors = useColors();
@@ -23,6 +35,8 @@ export default function GradientGeneratorScreen() {
   const [gradientType, setGradientType] = useState<GradientType>("linear");
   const [colorStops, setColorStops] = useState(["#FF6B35", "#4ADE80"]);
   const [angle, setAngle] = useState(90);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [colorInput, setColorInput] = useState("");
 
   const handlePress = () => {
     if (Platform.OS !== "web") {
@@ -55,6 +69,47 @@ export default function GradientGeneratorScreen() {
     Alert.alert("Export", "Gradient exported as PNG (1080x1920)");
   };
 
+  const openColorEditor = (index: number) => {
+    handlePress();
+    setEditingIndex(index);
+    setColorInput(colorStops[index]);
+  };
+
+  const updateColor = (newColor: string) => {
+    if (editingIndex === null) return;
+    // Validate hex color
+    const hexRegex = /^#[0-9A-Fa-f]{6}$/;
+    if (!hexRegex.test(newColor)) {
+      Alert.alert("Invalid Color", "Please enter a valid HEX color (e.g., #FF6B35)");
+      return;
+    }
+    handlePress();
+    const newStops = [...colorStops];
+    newStops[editingIndex] = newColor.toUpperCase();
+    setColorStops(newStops);
+    setEditingIndex(null);
+    setColorInput("");
+  };
+
+  const selectPresetColor = (color: string) => {
+    if (editingIndex === null) return;
+    handlePress();
+    const newStops = [...colorStops];
+    newStops[editingIndex] = color;
+    setColorStops(newStops);
+    setEditingIndex(null);
+    setColorInput("");
+  };
+
+  const copyGradientCSS = async () => {
+    if (Platform.OS !== "web") {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    const css = `background: linear-gradient(${angle}deg, ${colorStops.join(", ")});`;
+    await Clipboard.setStringAsync(css);
+    Alert.alert("Copied!", "CSS gradient code copied to clipboard");
+  };
+
   return (
     <>
       <Stack.Screen
@@ -64,8 +119,8 @@ export default function GradientGeneratorScreen() {
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.foreground,
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
-              <IconSymbol name="chevron.right" size={24} color={colors.foreground} />
+            <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 8 }}>
+              <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
             </TouchableOpacity>
           ),
         }}
@@ -127,8 +182,10 @@ export default function GradientGeneratorScreen() {
               </View>
               <View className="gap-3">
                 {colorStops.map((color, index) => (
-                  <View
+                  <TouchableOpacity
                     key={index}
+                    onPress={() => openColorEditor(index)}
+                    activeOpacity={0.7}
                     className="flex-row items-center gap-3 bg-surface rounded-2xl p-4 border border-border"
                   >
                     <View
@@ -137,18 +194,21 @@ export default function GradientGeneratorScreen() {
                     />
                     <View className="flex-1">
                       <Text className="text-base font-semibold text-foreground">{color}</Text>
-                      <Text className="text-sm text-muted">Stop {index + 1}</Text>
+                      <Text className="text-sm text-muted">Stop {index + 1} - Tap to edit</Text>
                     </View>
                     {colorStops.length > 2 && (
                       <TouchableOpacity
-                        onPress={() => removeColorStop(index)}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          removeColorStop(index);
+                        }}
                         activeOpacity={0.7}
                         className="w-8 h-8 rounded-full bg-error/20 items-center justify-center"
                       >
-                        <Text className="text-error font-bold">×</Text>
+                        <Text className="text-error font-bold">x</Text>
                       </TouchableOpacity>
                     )}
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>
@@ -157,12 +217,32 @@ export default function GradientGeneratorScreen() {
             {gradientType === "linear" && (
               <View className="gap-3">
                 <Text className="text-base font-semibold text-foreground">
-                  Angle: {angle}°
+                  Angle: {angle}deg
                 </Text>
-                <View className="bg-surface rounded-2xl p-4 border border-border">
-                  <Text className="text-sm text-muted text-center">
-                    Angle slider would go here
-                  </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+                    <TouchableOpacity
+                      key={deg}
+                      onPress={() => {
+                        handlePress();
+                        setAngle(deg);
+                      }}
+                      activeOpacity={0.7}
+                      className={`px-4 py-2 rounded-full border ${
+                        angle === deg
+                          ? "bg-primary border-primary"
+                          : "bg-surface border-border"
+                      }`}
+                    >
+                      <Text
+                        className={`text-sm font-medium ${
+                          angle === deg ? "text-background" : "text-foreground"
+                        }`}
+                      >
+                        {deg}deg
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
               </View>
             )}
@@ -192,15 +272,82 @@ export default function GradientGeneratorScreen() {
                 </Text>
               </TouchableOpacity>
 
-              <View className="bg-surface border border-primary/30 px-6 py-4 rounded-full">
-                <Text className="text-muted text-center text-sm">
-                  🔒 CSS Code Export (Pro only)
+              <TouchableOpacity
+                onPress={copyGradientCSS}
+                activeOpacity={0.7}
+                className="bg-surface border border-primary px-6 py-4 rounded-full"
+              >
+                <Text className="text-primary font-semibold text-center text-base">
+                  Copy CSS Code
                 </Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
       </ScreenContainer>
+
+      {/* Color Editor Modal */}
+      <Modal
+        visible={editingIndex !== null}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setEditingIndex(null)}
+      >
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-background rounded-t-3xl p-6 gap-4">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-xl font-bold text-foreground">Edit Color</Text>
+              <TouchableOpacity
+                onPress={() => setEditingIndex(null)}
+                activeOpacity={0.7}
+                className="w-8 h-8 rounded-full bg-surface items-center justify-center"
+              >
+                <Text className="text-foreground font-bold">X</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Color Preview */}
+            <View className="flex-row items-center gap-4">
+              <View
+                className="w-16 h-16 rounded-2xl"
+                style={{ backgroundColor: colorInput || "#FFFFFF" }}
+              />
+              <TextInput
+                className="flex-1 bg-surface border border-border rounded-xl px-4 py-3 text-foreground text-base"
+                placeholder="#FF6B35"
+                placeholderTextColor={colors.muted}
+                value={colorInput}
+                onChangeText={setColorInput}
+                autoCapitalize="characters"
+                maxLength={7}
+              />
+              <TouchableOpacity
+                onPress={() => updateColor(colorInput)}
+                activeOpacity={0.7}
+                className="bg-primary px-4 py-3 rounded-xl"
+              >
+                <Text className="text-background font-semibold">Apply</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Preset Colors */}
+            <View className="gap-2">
+              <Text className="text-sm font-semibold text-foreground">Preset Colors</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {PRESET_COLORS.map((color) => (
+                  <TouchableOpacity
+                    key={color}
+                    onPress={() => selectPresetColor(color)}
+                    activeOpacity={0.7}
+                    className="w-10 h-10 rounded-xl"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }

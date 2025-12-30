@@ -1,29 +1,40 @@
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { SymbolWeight, SymbolViewProps } from "expo-symbols";
+import { SymbolWeight } from "expo-symbols";
 import { ComponentProps } from "react";
 import { OpaqueColorValue, type StyleProp, type TextStyle } from "react-native";
 
-type IconMapping = Record<SymbolViewProps["name"], ComponentProps<typeof MaterialIcons>["name"]>;
-type IconSymbolName = keyof typeof MAPPING;
+type MaterialIconName = ComponentProps<typeof MaterialIcons>["name"];
 
 /**
  * Add your SF Symbols to Material Icons mappings here.
  * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
  * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
  */
-const MAPPING = {
+const MAPPING: Record<string, MaterialIconName> = {
   "house.fill": "home",
   "paperplane.fill": "send",
   "chevron.left.forwardslash.chevron.right": "code",
   "chevron.right": "chevron-right",
+  "chevron.left": "chevron-left",
   "square.grid.2x2.fill": "grid-view",
   "gearshape.fill": "settings",
   "photo.fill": "photo",
   "circle.fill": "circle",
   "paintbrush.fill": "brush",
-} as IconMapping;
+  "eyedropper": "colorize",
+  "gradient": "gradient",
+  "arrow.left": "arrow-back",
+  "plus": "add",
+  "trash": "delete",
+  "doc.on.doc": "content-copy",
+  "xmark": "close",
+  "checkmark": "check",
+  "square.and.arrow.up": "share",
+};
+
+type IconSymbolName = keyof typeof MAPPING;
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.

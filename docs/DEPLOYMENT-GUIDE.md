@@ -1,154 +1,86 @@
 # QuickColor Pro Deployment Guide
 
-This guide walks you through deploying updates to Google Play Console for testing and production.
+## Quick Release (Automated)
 
-## Prerequisites
+```bash
+pnpm release
+```
 
-- EAS CLI installed (`npm install -g eas-cli`)
-- Logged into EAS (`eas login`)
-- Google Play Console access
-- App already set up in Play Console with package: `space.manus.quickcolor.pro.t20251229203621`
+That's it. The script handles everything and downloads the AAB to `builds/`.
+
+Then upload to Play Console (see Step 2 below).
 
 ---
 
-## Part 1: Building a New Release
+## Full Process
 
-### Step 1: Update Version Number
+### Step 1: Build the Release
 
-Edit `app.config.ts` and increment the version:
-
-```typescript
-version: "1.0.4", // Increment this
-```
-
-> Note: `versionCode` (Android build number) auto-increments via EAS.
-
-### Step 2: Commit Your Changes
+**Option A: Automated (recommended)**
 
 ```bash
-git add -A
-git commit -m "Bump version to 1.0.4"
-git push
+pnpm release          # patch bump: 1.0.3 → 1.0.4
+pnpm release:minor    # minor bump: 1.0.3 → 1.1.0
+pnpm release:major    # major bump: 1.0.3 → 2.0.0
 ```
 
-### Step 3: Build for Production
+**Option B: Manual**
 
 ```bash
+# 1. Edit version in app.config.ts
+# 2. Commit and push
+git add -A && git commit -m "Bump version to X.X.X" && git push
+# 3. Build
 eas build --platform android --profile production
-```
-
-This builds an AAB (Android App Bundle) signed with your release keystore.
-
-**Build Output:**
-- AAB file is stored on EAS servers
-- Build URL: `https://expo.dev/accounts/eyane/projects/quickcolor-pro/builds/[BUILD_ID]`
-
-### Step 4: Download the AAB
-
-1. Go to the build URL shown in terminal
-2. Click **"Download"** button
-3. Save the `.aab` file to your computer
-
----
-
-## Part 2: Upload to Google Play Console
-
-### Step 1: Open Play Console
-
-Go to: https://play.google.com/console
-
-### Step 2: Navigate to Your App
-
-Select **QuickColor Pro** from your apps list.
-
-### Step 3: Go to Testing Track
-
-**For Closed Testing (Alpha):**
-1. Left sidebar → **Testing** → **Closed testing**
-2. Click on your track (e.g., "Alpha")
-
-### Step 4: Create New Release
-
-1. Click **"Create new release"**
-2. Upload your `.aab` file
-3. Add release notes (e.g., "Bug fixes and improvements")
-4. Click **"Review release"**
-5. Click **"Start rollout to Closed testing"**
-
----
-
-## Part 3: Setting Up Testers
-
-### Step 1: Add Yourself as Tester
-
-1. In Closed testing, click **"Testers"** tab
-2. Click **"Create email list"**
-3. Name it (e.g., "Internal Testers")
-4. Add your email address
-5. Click **"Save changes"**
-
-### Step 2: Get the Opt-in Link
-
-1. In the Testers tab, find **"Copy link"** button
-2. This is your opt-in URL
-
-### Step 3: Accept Testing Invitation
-
-**On your Android device:**
-1. Open the opt-in link in a browser
-2. Sign in with the same Google account you added as tester
-3. Click **"Accept"** or **"Become a tester"**
-4. Wait a few minutes for propagation
-
-### Step 4: Install from Play Store
-
-1. Open Google Play Store on your device
-2. Search for **"QuickColor Pro"** (may need direct link)
-3. Or use the Play Store link from the opt-in page
-4. Install the app
-
----
-
-## Quick Reference Commands
-
-```bash
-# Check current version
-grep "version:" app.config.ts
-
-# Build for testing (APK - sideload install)
-eas build --platform android --profile preview
-
-# Build for production (AAB - Play Store)
-eas build --platform android --profile production
-
-# List recent builds
-eas build:list --platform android
-
-# Download a specific build
-eas build:download --id [BUILD_ID]
+# 4. Download AAB from the URL shown in terminal
 ```
 
 ---
 
-## Common Issues
+### Step 2: Upload to Play Console
 
-### "App not available in your country"
-- Make sure your tester email matches your Play Store account
-- Re-accept the opt-in invitation
-
-### "No update available"
-- Clear Play Store cache (Settings → Apps → Play Store → Clear cache)
-- Wait 15-30 minutes for propagation
-- Try the direct Play Store link from opt-in page
-
-### Build fails with path errors
-- Check all import paths in `app.config.ts`
-- Run `pnpm check` locally first
+1. Go to https://play.google.com/console
+2. Select **QuickColor Pro**
+3. Go to **Testing** → **Closed testing**
+4. Click **Create new release**
+5. Upload the `.aab` file
+6. Add release notes
+7. Click **Review release** → **Start rollout**
 
 ---
 
-## Useful Links
+### Step 3: Test on Device (First Time Only)
 
-- **EAS Build Dashboard:** https://expo.dev/accounts/eyane/projects/quickcolor-pro/builds
-- **Google Play Console:** https://play.google.com/console
-- **Your App on Play Store (after publish):** https://play.google.com/store/apps/details?id=space.manus.quickcolor.pro.t20251229203621
+1. In Play Console, go to **Testers** tab
+2. Add your email to a tester list
+3. Copy the opt-in link
+4. Open link on your Android device and accept
+5. Install from Play Store
+
+---
+
+## Commands Reference
+
+| Command | What it does |
+|---------|--------------|
+| `pnpm release` | Full automated release |
+| `pnpm release --skip-build` | Just bump version, no build |
+| `eas build:list` | List recent builds |
+| `eas build:download --id ID` | Download a specific build |
+
+---
+
+## Troubleshooting
+
+**Build fails?** Run `pnpm check` first.
+
+**Script fails?** Check `eas whoami` to verify login.
+
+**App not in Play Store?** Wait 15-30 min, clear Play Store cache.
+
+---
+
+## Links
+
+- EAS Builds: https://expo.dev/accounts/eyane/projects/quickcolor-pro/builds
+- Play Console: https://play.google.com/console

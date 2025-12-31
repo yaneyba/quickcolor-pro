@@ -159,13 +159,23 @@ DOWNLOAD_DIR="$PROJECT_ROOT/builds"
 mkdir -p "$DOWNLOAD_DIR"
 
 AAB_PATH="$DOWNLOAD_DIR/quickcolor-pro-$NEW_VERSION.aab"
-eas build:download --id "$BUILD_ID" --path "$AAB_PATH"
 
-if [ -f "$AAB_PATH" ]; then
-    echo -e "${GREEN}✓${NC} Downloaded: $AAB_PATH\n"
+# Get artifact URL from build info
+ARTIFACT_URL=$(eas build:view "$BUILD_ID" --json 2>/dev/null | grep -o '"applicationArchiveUrl":[[:space:]]*"[^"]*"' | sed 's/.*"\(https[^"]*\)".*/\1/')
+
+if [ -n "$ARTIFACT_URL" ]; then
+    echo "Downloading from: $ARTIFACT_URL"
+    curl -L -o "$AAB_PATH" "$ARTIFACT_URL"
+
+    if [ -f "$AAB_PATH" ] && [ -s "$AAB_PATH" ]; then
+        echo -e "${GREEN}✓${NC} Downloaded: $AAB_PATH\n"
+    else
+        echo -e "${YELLOW}⚠ Download may have failed. Check manually:${NC}"
+        echo "  Build URL: https://expo.dev/accounts/eyane/projects/quickcolor-pro/builds/$BUILD_ID"
+    fi
 else
-    echo -e "${YELLOW}⚠ Download may have failed. Check manually:${NC}"
-    echo "  eas build:download --id $BUILD_ID"
+    echo -e "${YELLOW}⚠ Could not get artifact URL. Download manually from:${NC}"
+    echo "  https://expo.dev/accounts/eyane/projects/quickcolor-pro/builds/$BUILD_ID"
 fi
 
 # Done!

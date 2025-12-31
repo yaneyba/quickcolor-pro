@@ -137,11 +137,11 @@ while true; do
     STATUS=$(eas build:view "$BUILD_ID" --json 2>/dev/null | sed -n 's/.*"status":[[:space:]]*"\([^"]*\)".*/\1/p')
 
     case $STATUS in
-        "finished")
+        "finished"|"FINISHED")
             echo -e "\n${GREEN}✓${NC} Build completed!\n"
             break
             ;;
-        "errored"|"canceled")
+        "errored"|"canceled"|"ERRORED"|"CANCELED")
             echo -e "\n${RED}✗ Build failed with status: $STATUS${NC}"
             echo "View details: https://expo.dev/accounts/eyane/projects/quickcolor-pro/builds/$BUILD_ID"
             exit 1

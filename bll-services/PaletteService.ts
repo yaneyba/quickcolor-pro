@@ -18,9 +18,9 @@ import type {
 
 // Constants
 const STORAGE_KEY = "palettes";
-const MAX_FREE_PALETTES = 5;
-const MAX_PRO_PALETTES = 100;
-const MAX_COLORS_PER_PALETTE = 20;
+export const MAX_FREE_PALETTES = 5;
+export const MAX_PRO_PALETTES = 100;
+export const MAX_COLORS_PER_PALETTE = 20;
 
 /**
  * Create palette input

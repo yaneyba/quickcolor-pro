@@ -7,6 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ScreenContainer } from "@/ui-components/screen-container";
 import { IconSymbol } from "@/ui-components/ui/icon-symbol";
 import { useColors } from "@/ui-hooks/use-colors";
+import { MAX_FREE_PALETTES } from "@/bll-services";
 
 interface Palette {
   id: number;
@@ -21,7 +22,6 @@ interface ToastMessage {
 }
 
 const STORAGE_KEY = "@quickcolor_palettes";
-const MAX_FREE_PALETTES = 5;
 
 // Default palettes for first-time users
 const DEFAULT_PALETTES: Palette[] = [

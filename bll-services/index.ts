@@ -18,6 +18,9 @@ export type {
 export { ColorService, type ColorData } from "./ColorService";
 export {
   PaletteService,
+  MAX_FREE_PALETTES,
+  MAX_PRO_PALETTES,
+  MAX_COLORS_PER_PALETTE,
   type CreatePaletteInput,
   type UpdatePaletteInput,
 } from "./PaletteService";

@@ -22,6 +22,7 @@ import {
   extractColorsFromImage,
   type ExtractedColors,
 } from "@/lib/color-extraction";
+import { MAX_FREE_PALETTES } from "@/bll-services";
 
 const RECENT_COLORS_KEY = "@quickcolor_recent";
 const PALETTES_KEY = "@quickcolor_palettes";
@@ -102,19 +103,25 @@ export default function PhotoPickerScreen() {
   const savePalette = async () => {
     if (!extractedColors) return;
 
-    const paletteColors = [
-      extractedColors.dominant,
-      extractedColors.vibrant,
-      extractedColors.darkVibrant,
-      extractedColors.lightVibrant,
-      extractedColors.muted,
-    ]
-      .filter((c, i, arr) => arr.indexOf(c) === i)
-      .slice(0, 5);
-
     try {
       const stored = await AsyncStorage.getItem(PALETTES_KEY);
       const palettes = stored ? JSON.parse(stored) : [];
+
+      // Check free tier limit
+      if (palettes.length >= MAX_FREE_PALETTES) {
+        showToast("Limit Reached", "Upgrade to Pro for unlimited palettes!");
+        return;
+      }
+
+      const paletteColors = [
+        extractedColors.dominant,
+        extractedColors.vibrant,
+        extractedColors.darkVibrant,
+        extractedColors.lightVibrant,
+        extractedColors.muted,
+      ]
+        .filter((c, i, arr) => arr.indexOf(c) === i)
+        .slice(0, 5);
 
       const newPalette = {
         id: Date.now(),

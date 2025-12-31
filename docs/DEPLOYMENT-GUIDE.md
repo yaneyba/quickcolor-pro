@@ -63,10 +63,12 @@ eas build --platform android --profile production
 
 | Command | What it does |
 |---------|--------------|
-| `pnpm release` | Full automated release |
-| `pnpm release --skip-build` | Just bump version, no build |
+| `pnpm release` | Full automated release (patch bump) |
+| `pnpm release --minor` | Release with minor version bump |
+| `pnpm release --major` | Release with major version bump |
+| `pnpm release --skip-build` | Just bump version, commit, push (no build) |
 | `eas build:list` | List recent builds |
-| `eas build:download --id ID` | Download a specific build |
+| `eas build:view BUILD_ID --json` | View build details and artifact URL |
 
 ---
 

@@ -1,4 +1,4 @@
-import { ScrollView, Text, View, TouchableOpacity, Switch, Platform } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, Switch, Platform, Modal } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
@@ -7,13 +7,16 @@ import { IconSymbol } from "@/ui-components/ui/icon-symbol";
 import { useColors } from "@/ui-hooks/use-colors";
 import { useSettings } from "@/ui-hooks";
 import { ComingSoonModal } from "@/ui-components/coming-soon-modal";
+import type { ColorFormat } from "@/bll-services";
 
 export default function SettingsScreen() {
   const colors = useColors();
   const router = useRouter();
 
   // Use settings service hook instead of local state
-  const { settings, toggleHaptic, toggleAutoSave, loading } = useSettings();
+  const { settings, toggleHaptic, toggleAutoSave, setColorFormat, loading } = useSettings();
+
+  const [showFormatPicker, setShowFormatPicker] = useState(false);
 
   const [comingSoon, setComingSoon] = useState<{
     visible: boolean;
@@ -74,7 +77,14 @@ export default function SettingsScreen() {
             <Text className="text-base font-semibold text-foreground">App Settings</Text>
 
             {/* Default Color Format */}
-            <View className="bg-surface rounded-2xl p-4 border border-border">
+            <TouchableOpacity
+              onPress={() => {
+                handlePress();
+                setShowFormatPicker(true);
+              }}
+              activeOpacity={0.7}
+              className="bg-surface rounded-2xl p-4 border border-border"
+            >
               <View className="flex-row items-center justify-between">
                 <View className="flex-1">
                   <Text className="text-base text-foreground">Default Color Format</Text>
@@ -84,7 +94,7 @@ export default function SettingsScreen() {
                 </View>
                 <IconSymbol name="chevron.right" size={20} color={colors.muted} />
               </View>
-            </View>
+            </TouchableOpacity>
 
             {/* Haptic Feedback */}
             <View className="bg-surface rounded-2xl p-4 border border-border">
@@ -218,6 +228,59 @@ export default function SettingsScreen() {
         description={comingSoon.description}
         icon={comingSoon.icon}
       />
+
+      {/* Color Format Picker Modal */}
+      <Modal
+        visible={showFormatPicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowFormatPicker(false)}
+      >
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-background rounded-t-3xl p-6 gap-4">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-xl font-bold text-foreground">Default Color Format</Text>
+              <TouchableOpacity
+                onPress={() => setShowFormatPicker(false)}
+                activeOpacity={0.7}
+                className="w-8 h-8 rounded-full bg-surface items-center justify-center"
+              >
+                <Text className="text-foreground font-bold">X</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View className="gap-2">
+              {(["hex", "rgb", "hsv"] as ColorFormat[]).map((format) => (
+                <TouchableOpacity
+                  key={format}
+                  onPress={async () => {
+                    handlePress();
+                    await setColorFormat(format);
+                    setShowFormatPicker(false);
+                  }}
+                  activeOpacity={0.7}
+                  className={`flex-row items-center justify-between p-4 rounded-xl border ${
+                    settings.defaultColorFormat === format
+                      ? "bg-primary/10 border-primary"
+                      : "bg-surface border-border"
+                  }`}
+                >
+                  <Text
+                    className={`text-base font-semibold ${
+                      settings.defaultColorFormat === format ? "text-primary" : "text-foreground"
+                    }`}
+                  >
+                    {format.toUpperCase()}
+                  </Text>
+                  {settings.defaultColorFormat === format && (
+                    <IconSymbol name="checkmark" size={20} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }

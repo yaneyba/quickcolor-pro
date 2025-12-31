@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { ScrollView, Text, View, TouchableOpacity, Platform, TextInput, Modal, Share } from "react-native";
+import { useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -54,10 +55,12 @@ export default function PalettesScreen() {
   const [paletteToDelete, setPaletteToDelete] = useState<number | null>(null);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
-  // Load palettes from storage on mount
-  useEffect(() => {
-    loadPalettes();
-  }, []);
+  // Load palettes from storage when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      loadPalettes();
+    }, [])
+  );
 
   const showToast = (title: string, message: string) => {
     setToast({ title, message });

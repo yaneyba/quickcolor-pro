@@ -22,6 +22,7 @@ import {
   getContrastRatio,
   getWcagLevel,
 } from "@/lib/color-utils";
+import { MAX_FREE_PALETTES } from "@/bll-services";
 
 const STORAGE_KEY = "@quickcolor_palettes";
 
@@ -104,6 +105,13 @@ export default function ColorHarmonyScreen() {
     try {
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
       const palettes = stored ? JSON.parse(stored) : [];
+
+      // Check free tier limit
+      if (palettes.length >= MAX_FREE_PALETTES) {
+        showToast("Limit Reached", "Upgrade to Pro for unlimited palettes!", "info");
+        setShowSaveModal(false);
+        return;
+      }
 
       const newPalette = {
         id: Date.now(),

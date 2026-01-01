@@ -18,6 +18,7 @@ import { ComingSoonModal } from "@/ui-components/coming-soon-modal";
 import { ToastModal } from "@/ui-components/toast-modal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColors } from "@/ui-hooks/use-colors";
+import { MAX_FREE_PALETTES } from "@/bll-services";
 
 const PALETTES_KEY = "@quickcolor_palettes";
 
@@ -101,6 +102,12 @@ export default function GradientGeneratorScreen() {
     try {
       const stored = await AsyncStorage.getItem(PALETTES_KEY);
       const palettes = stored ? JSON.parse(stored) : [];
+
+      // Check free tier limit
+      if (palettes.length >= MAX_FREE_PALETTES) {
+        showToast("Limit Reached", "Upgrade to Pro for unlimited palettes!", "info");
+        return;
+      }
 
       const newPalette = {
         id: Date.now(),
